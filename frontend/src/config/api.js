@@ -12,15 +12,15 @@ const API_CONFIG = {
     // Prefixo do token (ex: 'Bearer ', 'Token ')
     TOKEN_PREFIX: 'Bearer ',
     // Endpoint para verificar se usuário existe
-    CHECK_USER_ENDPOINT: '/auth/check-user',
+    CHECK_USER_ENDPOINT: '/users/check-username',
     // Endpoint para login
-    LOGIN_ENDPOINT: '/auth/login',
+    LOGIN_ENDPOINT: '/users/login',
     // Endpoint para refresh token
     REFRESH_ENDPOINT: '/auth/refresh',
     // Endpoint para logout
     LOGOUT_ENDPOINT: '/auth/logout',
     // Endpoint para registrar novo usuário
-    REGISTER_ENDPOINT: '/auth/register',
+    REGISTER_ENDPOINT: '/users/register',
   },
   
   // Configurações de timeout

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, Integer, String, Float, Text, ForeignKey, Table, DateTime, Boolean, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session, relationship
@@ -255,6 +256,9 @@ class UserLogin(BaseModel):
     username: str
     password: str
 
+class UsernameCheck(BaseModel):
+    identifier: str
+
 class UserResponse(UserBase):
     id: int
     is_active: bool
@@ -465,6 +469,15 @@ Base.metadata.create_all(bind=engine)
 
 # FastAPI app
 app = FastAPI(title="Chicken Feeding Management System", version="1.0.0")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Dependency to get database session
 def get_db():
@@ -679,6 +692,15 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+@app.post("/users/check-username")
+def check_username(request: UsernameCheck, db: Session = Depends(get_db)):
+    """Check if username is available for registration"""
+    user = db.query(User).filter(User.username == request.identifier).first()
+    if user:
+        return {"available": False, "message": "Username already taken"}
+    return {"available": True, "message": "Username is available"}
+
 
 @app.get("/users/", response_model=List[UserResponse])
 def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):

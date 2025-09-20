@@ -4,7 +4,7 @@ import { useAuth } from "../hooks/useApi.js";
 
 export default function Login({ onLogin, onSwitchToRegister }) {
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -27,27 +27,23 @@ export default function Login({ onLogin, onSwitchToRegister }) {
     setApiError("");
 
     // Basic validation
-    if (!formData.email || !formData.password) {
+    if (!formData.username || !formData.password) {
       setApiError("Por favor, preencha todos os campos");
       return;
     }
 
-    if (!formData.email.includes("@")) {
-      setApiError("Por favor, insira um email válido");
-      return;
-    }
 
     try {
       // Tentar login com a API real
       const result = await login({
-        email: formData.email,
+        username: formData.username,
         password: formData.password
       });
 
       if (result.success) {
         // Login bem-sucedido
         onLogin({ 
-          email: formData.email, 
+          email: formData.username, 
           name: result.data.user?.name || result.data.user?.username || "Usuário",
           farmName: result.data.user?.farmName 
         });
@@ -89,23 +85,23 @@ export default function Login({ onLogin, onSwitchToRegister }) {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Email
+              <label htmlFor="username" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-slate-400 dark:text-slate-500" />
                 </div>
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
+                  id="username"
+                  name="username"
+                  type="username"
+                  autoComplete="username"
                   required
-                  value={formData.email}
+                  value={formData.username}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400"
-                  placeholder="seu@email.com"
+                  placeholder="username"
                 />
               </div>
             </div>

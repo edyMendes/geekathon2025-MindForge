@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { listProfiles, loadProfile, removeProfile, saveProfile, addHistory, getHistory } from "../hooks/useSettings.js";
 import ChickenForm from "../components/ChickenForm.jsx";
 import Recommendations from "../components/Recommendations.jsx";
-import WeeklyCalendar from "../components/WeeklyCalendar.jsx";
+import WeeklyRecipes from "../components/WeeklyRecipes.jsx";
 import { preciseFeedAmount } from "../utils/calculate.js";
 import { TrendingUp } from "lucide-react";
 import Chart from "chart.js/auto";
@@ -182,9 +182,9 @@ export default function Dashboard() {
         <Recommendations model={model} />
       </div>
 
-      {/* Weekly Calendar */}
+      {/* Weekly Recipes */}
       <div className="mt-12">
-        <WeeklyCalendar model={model} />
+        <WeeklyRecipes model={model} />
       </div>
 
       {/* DASHBOARD GRUPOS */}

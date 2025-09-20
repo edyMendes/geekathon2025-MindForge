@@ -1,9 +1,10 @@
 
-import { Cpu, Save } from "lucide-react";
+import { Cpu, Save, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { preciseFeedAmount, optimalFeedingTimes, calculateSeasonalFeedAmount, getAdditionalFeedRecommendations } from "../utils/calculate.js";
 import { saveProfile } from "../hooks/useSettings.js";
 import ProfileNameModal from "./ProfileNameModal.jsx";
+import bedrockApiService from "../services/bedrockApiService.js";
 
 
 export default function ChickenForm({ onCalculated, onLoaded, loadProfileData }) {
@@ -27,6 +28,10 @@ export default function ChickenForm({ onCalculated, onLoaded, loadProfileData })
 
   // Modal states
   const [showSaveModal, setShowSaveModal] = useState(false);
+  
+  // Loading state for API calls
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [calculationError, setCalculationError] = useState(null);
 
   const set = (k, v) => setForm((s) => ({ ...s, [k]: v }));
 
@@ -37,34 +42,47 @@ export default function ChickenForm({ onCalculated, onLoaded, loadProfileData })
     }
   }, [loadProfileData]);
 
-  const calc = (e) => {
+  const calc = async (e) => {
     e.preventDefault();
     const { breed, age, weight, quantity, environment, season, purpose, eggPurpose, stressLevel, feedType, feedBrand, feedCost, molting, vaccination, eggPrice } = form;
 
     const iAge = parseInt(age), iQty = parseInt(quantity), fW = parseFloat(weight);
     if (!iAge || !iQty || !fW) return alert("Please fill in age, weight and quantity with valid values.");
 
-    // Calculate seasonal feed amount with adjustments
-    const seasonalFeedData = calculateSeasonalFeedAmount(breed, iAge, fW, environment, season, stressLevel, molting, purpose);
-    
-    // Get additional recommendations
-    const recommendations = getAdditionalFeedRecommendations(breed, iAge, environment, season, purpose);
+    setIsCalculating(true);
+    setCalculationError(null);
 
-    const totalKg = (seasonalFeedData.adjustedAmount * iQty) / 1000;
-    const times = optimalFeedingTimes(iAge, season, environment, stressLevel, purpose);
+    try {
+      // Try Bedrock API first
+      const bedrockResponse = await bedrockApiService.calculateFeed(form);
+      const transformedData = await bedrockApiService.transformBedrockResponse(bedrockResponse, form);
+      onCalculated(transformedData);
+    } catch (bedrockError) {
+      console.warn('Bedrock API failed, falling back to local calculations:', bedrockError);
+      setCalculationError(`Bedrock API unavailable: ${bedrockError.message}. Using local calculations.`);
+      
+      // Fallback to local calculations
+      const seasonalFeedData = calculateSeasonalFeedAmount(breed, iAge, fW, environment, season, stressLevel, molting, purpose);
+      const recommendations = getAdditionalFeedRecommendations(breed, iAge, environment, season, purpose);
 
-    onCalculated({
-      form,
-      perChicken: seasonalFeedData.adjustedAmount,
-      basePerChicken: seasonalFeedData.baseAmount,
-      totalKg,
-      times,
-      seasonalAdjustments: seasonalFeedData.seasonalAdjustments,
-      recommendations: recommendations,
-      energyIncrease: seasonalFeedData.energyIncrease,
-      proteinIncrease: seasonalFeedData.proteinIncrease,
-      calciumIncrease: seasonalFeedData.calciumIncrease
-    });
+      const totalKg = (seasonalFeedData.adjustedAmount * iQty) / 1000;
+      const times = optimalFeedingTimes(iAge, season, environment, stressLevel, purpose);
+
+      onCalculated({
+        form,
+        perChicken: seasonalFeedData.adjustedAmount,
+        basePerChicken: seasonalFeedData.baseAmount,
+        totalKg,
+        times,
+        seasonalAdjustments: seasonalFeedData.seasonalAdjustments,
+        recommendations: recommendations,
+        energyIncrease: seasonalFeedData.energyIncrease,
+        proteinIncrease: seasonalFeedData.proteinIncrease,
+        calciumIncrease: seasonalFeedData.calciumIncrease
+      });
+    } finally {
+      setIsCalculating(false);
+    }
   };
 
   const handleSave = async (profileName) => {
@@ -83,6 +101,7 @@ export default function ChickenForm({ onCalculated, onLoaded, loadProfileData })
       alert("Error saving profile. Please try again.");
     }
   };
+
 
   const openSaveModal = () => {
     const { age, weight, quantity } = form;
@@ -156,9 +175,28 @@ export default function ChickenForm({ onCalculated, onLoaded, loadProfileData })
           </div>
         </div>
 
+        {/* Error message */}
+        {calculationError && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
+            <p className="text-yellow-800 dark:text-yellow-200 text-sm">{calculationError}</p>
+          </div>
+        )}
+
         <div className="grid sm:grid-cols-2 gap-3 pt-2">
-          <button className="btn-primary w-full py-3 rounded-lg inline-flex items-center justify-center">
-            <Cpu className="mr-2" size={18}/> Calculate Recommendations
+          <button 
+            type="submit"
+            disabled={isCalculating}
+            className="btn-primary w-full py-3 rounded-lg inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isCalculating ? (
+              <>
+                <Loader2 className="mr-2 animate-spin" size={18}/> Calculating...
+              </>
+            ) : (
+              <>
+                <Cpu className="mr-2" size={18}/> Calculate Recommendations
+              </>
+            )}
           </button>
           <button type="button" onClick={openSaveModal} className="btn-sec w-full py-3 rounded-lg inline-flex items-center justify-center">
             <Save className="mr-2" size={18}/> Save Profile

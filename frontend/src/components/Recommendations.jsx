@@ -20,8 +20,27 @@ export default function Recommendations({ model }) {
     );
   }
 
-  const { form, perChicken, basePerChicken, totalKg, times, seasonalAdjustments, recommendations, energyIncrease, proteinIncrease, calciumIncrease } = model;
-  const perMeal = Math.round(perChicken / times.length);
+  const { 
+    form, 
+    perChicken, 
+    basePerChicken, 
+    totalKg, 
+    times, 
+    seasonalAdjustments, 
+    recommendations, 
+    energyIncrease, 
+    proteinIncrease, 
+    calciumIncrease,
+    // Bedrock-specific fields
+    mealsPerDay,
+    quantityPerMeal,
+    storageRecommendations,
+    nutritionalAnalysis,
+    feedComposition
+  } = model;
+  
+  const perMeal = quantityPerMeal ? Math.round(quantityPerMeal) : Math.round(perChicken / times.length);
+  const actualMealsPerDay = mealsPerDay || times.length;
 
   return (
     <div className="card shadow-sm p-6 card-hover" data-aos="fade-left">
@@ -29,15 +48,40 @@ export default function Recommendations({ model }) {
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="border border-slate-200 dark:border-slate-600 rounded-lg p-4 bg-white/80 dark:bg-slate-800/80" data-surge>
-          <h3 className="font-semibold mb-2 text-slate-800 dark:text-slate-200">Feeding Schedule</h3>
+          <h3 className="font-semibold mb-2 text-slate-800 dark:text-slate-200 flex items-center">
+            <Calendar className="mr-2 text-blue-500" />
+            Feeding Schedule
+            {mealsPerDay && (
+              <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                AI Optimized
+              </span>
+            )}
+          </h3>
           <ul className="space-y-2">
-            {times.map((t) => (
+            {times.map((t, index) => (
               <li key={t} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-700 rounded">
-                <span className="font-semibold text-slate-900 dark:text-slate-100">{t}</span>
+                <div className="flex items-center">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">{t}</span>
+                  {mealsPerDay && index === 0 && (
+                    <span className="ml-2 text-xs text-green-600 dark:text-green-400">
+                      Morning
+                    </span>
+                  )}
+                  {mealsPerDay && index === 1 && (
+                    <span className="ml-2 text-xs text-orange-600 dark:text-orange-400">
+                      Evening
+                    </span>
+                  )}
+                </div>
                 <span className="text-sm text-slate-600 dark:text-slate-400">{perMeal} g/chicken</span>
               </li>
             ))}
           </ul>
+          {mealsPerDay && (
+            <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs text-blue-700 dark:text-blue-300">
+              <strong>AI Recommendation:</strong> {mealsPerDay} meals per day for optimal nutrition absorption
+            </div>
+          )}
         </div>
 
         <div className="border border-slate-200 dark:border-slate-600 rounded-lg p-4 bg-white/80 dark:bg-slate-800/80" data-surge>
@@ -53,7 +97,7 @@ export default function Recommendations({ model }) {
             </div>
             <div className="bg-slate-50 dark:bg-slate-700 p-2 rounded">
               <p className="text-slate-600 dark:text-slate-400">Meals/day</p>
-              <p className="font-semibold text-slate-900 dark:text-slate-100">{times.length}</p>
+              <p className="font-semibold text-slate-900 dark:text-slate-100">{actualMealsPerDay}</p>
             </div>
           </div>
         </div>
@@ -67,55 +111,213 @@ export default function Recommendations({ model }) {
             Seasonal Adjustments for {form.season}
           </h3>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-4">
+            {/* Energy Adjustments */}
+            {seasonalAdjustments.energy_adjustment && (
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mr-3">
+                    <Thermometer className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Energy Requirements</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                      {seasonalAdjustments.energy_adjustment}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Protein Adjustments */}
+            {seasonalAdjustments.protein_adjustment && (
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mr-3">
+                    <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Protein Requirements</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                      {seasonalAdjustments.protein_adjustment}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Water Considerations */}
+            {seasonalAdjustments.water_considerations && (
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mr-3">
+                    <Droplets className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Water Considerations</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                      {seasonalAdjustments.water_considerations}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Fallback to old format if new format not available */}
+            {!seasonalAdjustments.energy_adjustment && !seasonalAdjustments.protein_adjustment && !seasonalAdjustments.water_considerations && (
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-slate-600 dark:text-slate-400">Energy</span>
+                    <span className={`text-sm font-semibold ${energyIncrease > 0 ? 'text-green-600' : energyIncrease < 0 ? 'text-red-600' : 'text-slate-600'}`}>
+                      {energyIncrease > 0 ? '+' : ''}{energyIncrease}%
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {seasonalAdjustments.special_notes || 'Standard seasonal adjustments'}
+                  </div>
+                </div>
+                
+                <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-slate-600 dark:text-slate-400">Protein</span>
+                    <span className={`text-sm font-semibold ${proteinIncrease > 0 ? 'text-green-600' : proteinIncrease < 0 ? 'text-red-600' : 'text-slate-600'}`}>
+                      {proteinIncrease > 0 ? '+' : ''}{proteinIncrease}%
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {proteinIncrease > 0 ? 'Increased for growth' : 'Standard levels'}
+                  </div>
+                </div>
+                
+                <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-slate-600 dark:text-slate-400">Calcium</span>
+                    <span className={`text-sm font-semibold ${calciumIncrease > 0 ? 'text-green-600' : calciumIncrease < 0 ? 'text-red-600' : 'text-slate-600'}`}>
+                      {calciumIncrease > 0 ? '+' : ''}{calciumIncrease}%
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {calciumIncrease > 0 ? 'Boosted for eggshells' : 'Standard levels'}
+                  </div>
+                </div>
+                
+                <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-slate-600 dark:text-slate-400">Frequency</span>
+                    <span className="text-sm font-semibold text-blue-600">
+                      {seasonalAdjustments.feeding_frequency || 'Standard'}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    Water: {seasonalAdjustments.water_temperature || 'Room temperature'}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Feed Composition from Bedrock API */}
+      {feedComposition && (
+        <div className="mt-6 border border-slate-200 dark:border-slate-600 rounded-lg p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20" data-surge>
+          <h3 className="font-semibold mb-3 text-slate-800 dark:text-slate-200 flex items-center">
+            <Thermometer className="mr-2 text-green-500" />
+            Feed Composition Analysis
+          </h3>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-slate-600 dark:text-slate-400">Energy</span>
-                <span className={`text-sm font-semibold ${energyIncrease > 0 ? 'text-green-600' : energyIncrease < 0 ? 'text-red-600' : 'text-slate-600'}`}>
-                  {energyIncrease > 0 ? '+' : ''}{energyIncrease}%
+                <span className="text-sm text-slate-600 dark:text-slate-400">Crude Protein</span>
+                <span className="text-sm font-semibold text-green-600">
+                  {feedComposition.crudeProteinPercent}%
                 </span>
               </div>
               <div className="text-xs text-slate-500 dark:text-slate-400">
-                {seasonalAdjustments.special_notes}
+                {form.purpose === 'meat' ? 'Essential for muscle growth and development' : 'Essential for growth and egg production'}
               </div>
             </div>
             
             <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-slate-600 dark:text-slate-400">Protein</span>
-                <span className={`text-sm font-semibold ${proteinIncrease > 0 ? 'text-green-600' : proteinIncrease < 0 ? 'text-red-600' : 'text-slate-600'}`}>
-                  {proteinIncrease > 0 ? '+' : ''}{proteinIncrease}%
+                <span className="text-sm text-slate-600 dark:text-slate-400">Energy</span>
+                <span className="text-sm font-semibold text-green-600">
+                  {feedComposition.metabolizableEnergy} kcal/kg
                 </span>
               </div>
               <div className="text-xs text-slate-500 dark:text-slate-400">
-                {proteinIncrease > 0 ? 'Increased for growth' : 'Standard levels'}
+                Metabolizable energy content
               </div>
             </div>
             
             <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-slate-600 dark:text-slate-400">Calcium</span>
-                <span className={`text-sm font-semibold ${calciumIncrease > 0 ? 'text-green-600' : calciumIncrease < 0 ? 'text-red-600' : 'text-slate-600'}`}>
-                  {calciumIncrease > 0 ? '+' : ''}{calciumIncrease}%
+                <span className="text-sm font-semibold text-green-600">
+                  {feedComposition.calciumPercent}%
                 </span>
               </div>
               <div className="text-xs text-slate-500 dark:text-slate-400">
-                {calciumIncrease > 0 ? 'Boosted for eggshells' : 'Standard levels'}
+                {form.purpose === 'meat' ? 'Important for bone strength and development' : 'Critical for eggshell formation'}
               </div>
             </div>
             
             <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-slate-600 dark:text-slate-400">Frequency</span>
-                <span className="text-sm font-semibold text-blue-600">
-                  {seasonalAdjustments.feeding_frequency}
+                <span className="text-sm text-slate-600 dark:text-slate-400">Phosphorus</span>
+                <span className="text-sm font-semibold text-green-600">
+                  {feedComposition.phosphorusPercent}%
                 </span>
               </div>
               <div className="text-xs text-slate-500 dark:text-slate-400">
-                Water: {seasonalAdjustments.water_temperature}
+                {form.purpose === 'meat' ? 'Bone and muscle development' : 'Bone and egg development'}
+              </div>
+            </div>
+            
+            <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-slate-600 dark:text-slate-400">Fiber</span>
+                <span className="text-sm font-semibold text-green-600">
+                  {feedComposition.fiberPercent}%
+                </span>
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                Digestive health
+              </div>
+            </div>
+            
+            <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-slate-600 dark:text-slate-400">Source</span>
+                <span className="text-sm font-semibold text-blue-600">
+                  AI Analysis
+                </span>
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                Powered by Bedrock AI
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Storage Recommendations from Bedrock API */}
+      {storageRecommendations && storageRecommendations.length > 0 && (
+        <div className="mt-6 border border-slate-200 dark:border-slate-600 rounded-lg p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20" data-surge>
+          <h3 className="font-semibold mb-3 text-slate-800 dark:text-slate-200 flex items-center">
+            <Droplets className="mr-2 text-amber-500" />
+            Storage Recommendations
+          </h3>
+          <ul className="space-y-2">
+            {storageRecommendations.map((rec, idx) => (
+              <li key={idx} className="flex items-start text-sm text-amber-800 dark:text-amber-200">
+                <span className="mr-2 mt-1">•</span>
+                <span>{typeof rec === 'string' ? rec : JSON.stringify(rec)}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
@@ -139,7 +341,7 @@ export default function Recommendations({ model }) {
                   {recommendations.seasonal.map((rec, idx) => (
                     <li key={idx} className="flex items-start">
                       <span className="mr-2">•</span>
-                      <span>{rec}</span>
+                      <span>{typeof rec === 'string' ? rec : JSON.stringify(rec)}</span>
                     </li>
                   ))}
                 </ul>
@@ -157,7 +359,7 @@ export default function Recommendations({ model }) {
                   {recommendations.breed.map((rec, idx) => (
                     <li key={idx} className="flex items-start">
                       <span className="mr-2">•</span>
-                      <span>{rec}</span>
+                      <span>{typeof rec === 'string' ? rec : JSON.stringify(rec)}</span>
                     </li>
                   ))}
                 </ul>
@@ -175,7 +377,7 @@ export default function Recommendations({ model }) {
                   {recommendations.age.map((rec, idx) => (
                     <li key={idx} className="flex items-start">
                       <span className="mr-2">•</span>
-                      <span>{rec}</span>
+                      <span>{typeof rec === 'string' ? rec : JSON.stringify(rec)}</span>
                     </li>
                   ))}
                 </ul>
@@ -193,7 +395,7 @@ export default function Recommendations({ model }) {
                   {recommendations.environment.map((rec, idx) => (
                     <li key={idx} className="flex items-start">
                       <span className="mr-2">•</span>
-                      <span>{rec}</span>
+                      <span>{typeof rec === 'string' ? rec : JSON.stringify(rec)}</span>
                     </li>
                   ))}
                 </ul>
@@ -211,7 +413,7 @@ export default function Recommendations({ model }) {
                   {recommendations.purpose.map((rec, idx) => (
                     <li key={idx} className="flex items-start">
                       <span className="mr-2">•</span>
-                      <span>{rec}</span>
+                      <span>{typeof rec === 'string' ? rec : JSON.stringify(rec)}</span>
                     </li>
                   ))}
                 </ul>
@@ -229,7 +431,7 @@ export default function Recommendations({ model }) {
                   {recommendations.general.map((rec, idx) => (
                     <li key={idx} className="flex items-start">
                       <span className="mr-2">•</span>
-                      <span>{rec}</span>
+                      <span>{typeof rec === 'string' ? rec : JSON.stringify(rec)}</span>
                     </li>
                   ))}
                 </ul>
@@ -238,6 +440,7 @@ export default function Recommendations({ model }) {
           </div>
         </div>
       )}
+
 
     </div>
   );

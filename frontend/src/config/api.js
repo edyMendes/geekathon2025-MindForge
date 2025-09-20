@@ -3,6 +3,9 @@ const API_CONFIG = {
   // API base URL (can be changed via environment variable)
   BASE_URL: import.meta.env.VITE_API_BASE_URL,
   
+  // Bedrock API base URL for AI services
+  BEDROCK_API_BASE_URL: import.meta.env.VITE_BEDROCK_API_BASE_URL,
+  
   // Authentication settings
   AUTH: {
     // Authentication type (bearer, basic, api-key, etc.)
@@ -51,6 +54,31 @@ const API_CONFIG = {
     ANALYTICS: '/analytics',
   },
   
+  // Bedrock AI API endpoints
+  BEDROCK_ENDPOINTS: {
+    // AI model endpoints
+    CHAT_COMPLETION: '/chat/completions',
+    TEXT_GENERATION: '/text/generation',
+    EMBEDDINGS: '/embeddings',
+    IMAGE_GENERATION: '/image/generation',
+    
+    // Chicken Feed Advisor API endpoints
+    RECOMMEND_FEED: '/recommend-feed',
+    CALCULATE_FEED: '/calculate-feed',
+    WEEKLY_RECIPES: '/weekly-recipes',
+    HEALTH_CHECK: '/health',
+    AUTH_INFO: '/auth/info',
+    AUTH_VALIDATE: '/auth/validate',
+    SEASONS: '/seasons',
+    
+    // Legacy AI services for chicken farming
+    FEED_RECOMMENDATION: '/ai/feed-recommendation',
+    HEALTH_ANALYSIS: '/ai/health-analysis',
+    GROWTH_PREDICTION: '/ai/growth-prediction',
+    DISEASE_DETECTION: '/ai/disease-detection',
+    OPTIMAL_FORMULATION: '/ai/optimal-formulation',
+  },
+  
   // Cache settings
   CACHE: {
     // Cache time in ms (5 minutes by default)
@@ -85,5 +113,23 @@ export const getEndpoints = () => API_CONFIG.ENDPOINTS;
 
 // Function to get cache settings
 export const getCacheConfig = () => API_CONFIG.CACHE;
+
+// Function to get Bedrock API base URL
+export const getBedrockBaseUrl = () => API_CONFIG.BEDROCK_API_BASE_URL;
+
+// Function to get Bedrock endpoints
+export const getBedrockEndpoints = () => API_CONFIG.BEDROCK_ENDPOINTS;
+
+// Function to get complete Bedrock API URL for an endpoint
+export const getBedrockApiUrl = (endpoint) => {
+  const baseUrl = API_CONFIG.BEDROCK_API_BASE_URL?.replace(/\/$/, '') || '';
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${baseUrl}${cleanEndpoint}`;
+};
+
+// Function to check if Bedrock API is configured
+export const isBedrockConfigured = () => {
+  return !!API_CONFIG.BEDROCK_API_BASE_URL;
+};
 
 export default API_CONFIG;

@@ -9,7 +9,7 @@ from typing import Dict, Any
 from fastapi import HTTPException
 
 from app.core.config import settings
-from app.models.chicken import ChickenInfo
+from app.models.chicken import ChickenInfo, ChickenDiseaseInfo
 from app.services.auth_service import AWSAuthService
 
 logger = logging.getLogger(__name__)
@@ -453,6 +453,149 @@ Create 7 days (Monday-Sunday) with varied, nutritious, and practical recipes for
         }
         
         return response
+    
+    def _create_disease_recovery_prompt(self, disease_info: ChickenDiseaseInfo, season: str) -> str:
+        """Create prompt for disease recovery feed recommendations"""
+        
+        return f"""You are a poultry veterinarian and nutrition expert specializing in disease recovery. Please provide a comprehensive recovery feed recommendation for the following diseased chicken group:
+
+Chicken Details:
+- Number of birds: {disease_info.count}
+- Breed: {disease_info.breed}
+- Average weight: {disease_info.average_weight_kg} kg per bird
+- Age: {disease_info.age_weeks} weeks
+- Disease: {disease_info.disease}
+- Current season: {season}
+
+Please provide a comprehensive recovery response in JSON format with the following structure. Return ONLY valid JSON without any markdown formatting or code blocks:
+
+{{
+    "recovery_feed_composition": {{
+        "crude_protein_percent": <percentage>,
+        "metabolizable_energy_kcal_per_kg": <value>,
+        "crude_fat_percent": <percentage>,
+        "crude_fiber_percent": <percentage>,
+        "calcium_percent": <percentage>,
+        "phosphorus_percent": <percentage>,
+        "lysine_percent": <percentage>,
+        "methionine_percent": <percentage>,
+        "vitamins": {{
+            "vitamin_a_iu_per_kg": <value>,
+            "vitamin_d3_iu_per_kg": <value>,
+            "vitamin_e_iu_per_kg": <value>
+        }},
+        "minerals": {{
+            "sodium_percent": <percentage>,
+            "chloride_percent": <percentage>,
+            "magnesium_percent": <percentage>
+        }},
+        "immune_support_nutrients": {{
+            "vitamin_c_mg_per_kg": <value>,
+            "zinc_mg_per_kg": <value>,
+            "selenium_mg_per_kg": <value>,
+            "probiotics_cfu_per_kg": <value>,
+            "omega_3_fatty_acids_percent": <percentage>
+        }}
+    }},
+    "daily_feed_amount_per_bird_kg": <amount in kg>,
+    "total_daily_feed_kg": <total for all birds>,
+    "disease_treatment": {{
+        "treatment_approach": "<overall treatment strategy>",
+        "feed_modifications": [
+            "<modification 1>",
+            "<modification 2>",
+            "<modification 3>"
+        ],
+        "supplements": [
+            "<supplement 1>",
+            "<supplement 2>",
+            "<supplement 3>"
+        ],
+        "environmental_changes": [
+            "<environmental change 1>",
+            "<environmental change 2>",
+            "<environmental change 3>"
+        ],
+        "monitoring_points": [
+            "<monitoring point 1>",
+            "<monitoring point 2>",
+            "<monitoring point 3>"
+        ],
+        "recovery_timeline": "<expected recovery period>"
+    }},
+    "feeding_schedule": [
+        "<feeding time 1>",
+        "<feeding time 2>",
+        "<feeding time 3>"
+    ],
+    "special_considerations": [
+        "<consideration 1>",
+        "<consideration 2>",
+        "<consideration 3>"
+    ]
+}}
+
+Consider the following disease-specific nutritional requirements:
+
+Disease-specific considerations:
+- Respiratory infections: Higher vitamin A and E for lung health, reduced dust in feed, increased antioxidants
+- Coccidiosis: Easily digestible ingredients, probiotics, prebiotics, increased vitamin K for blood clotting
+- Mites/Lice: Higher protein for tissue repair, increased B-vitamins for skin health, immune support
+- Egg binding: Increased calcium and vitamin D3, reduced energy to prevent obesity, increased fiber
+- Marek's disease: Immune-boosting nutrients, antioxidants, stress reduction through nutrition
+- Newcastle disease: High-energy recovery feed, immune support, reduced stress through optimal nutrition
+
+Severity-based adjustments:
+- Mild: Slight nutritional adjustments, maintain normal feeding schedule with minor modifications
+- Moderate: Significant feed modifications, increased feeding frequency, specific supplements
+- Severe: High-energy, high-protein recovery feed, frequent small meals, intensive nutritional support
+- Critical: Emergency nutritional support, specialized recovery formulas, maximum nutrient density
+
+Environment considerations:
+- Free range: May need additional supplements due to reduced foraging, isolation for recovery
+- Barn: Standard recovery protocols with environmental controls, improved ventilation
+- Battery cage: Optimized for confined recovery, easy access to feed and water
+- Organic: Must meet organic standards, natural recovery approaches, herbal supplements
+
+Purpose considerations:
+- Eggs: Maintain calcium levels for shell quality during recovery, support reproductive health
+- Breeding: Focus on reproductive health restoration, fertility optimization
+- Meat production: Optimize for weight gain and muscle development during recovery
+
+Seasonal adjustments:
+- Spring: Support for natural recovery processes, increased vitamin D for immune function
+- Summer: Increased hydration support, heat stress management, electrolyte balance
+- Autumn: Immune system preparation for winter, increased energy for molting
+- Winter: Higher energy for cold stress, immune support, increased feed intake
+
+Focus on providing practical, actionable recovery recommendations that address the specific disease, severity, and environmental conditions while ensuring optimal nutrition for healing and recovery."""
+
+    def generate_disease_recovery_recommendation(self, disease_info: ChickenDiseaseInfo) -> Dict[str, Any]:
+        """Generate disease recovery feed recommendations using Nova Pro"""
+        
+        # Auto-detect season
+        season = self.get_current_season()
+        
+        logger.info(f"Generating disease recovery recommendation for {disease_info.count} {disease_info.breed} chickens with {disease_info.disease}")
+        
+        # Create prompt
+        prompt = self._create_disease_recovery_prompt(disease_info, season)
+        
+        # Call Nova Pro
+        recommendation = self._call_nova_pro(prompt)
+        
+        # Add metadata
+        recommendation["request_info"] = {
+            "processed_at": datetime.now().isoformat(),
+            "chicken_count": disease_info.count,
+            "breed": disease_info.breed,
+            "average_weight_kg": disease_info.average_weight_kg,
+            "age_weeks": disease_info.age_weeks,
+            "disease": disease_info.disease,
+            "season_used": season
+        }
+        
+        return recommendation
     
     def validate_credentials(self) -> bool:
         """Validate current AWS credentials"""

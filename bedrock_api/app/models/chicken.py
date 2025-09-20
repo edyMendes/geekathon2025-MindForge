@@ -175,3 +175,83 @@ class WeeklyRecipeResponse(BaseModel):
     feed_calculation: FeedCalculation
     nutritional_context: Dict[str, Any] = Field(..., description="Context from the original feed recommendation")
     request_info: RequestInfo
+
+class ChickenDiseaseInfo(BaseModel):
+    """Model for chicken disease information input"""
+    count: int = Field(
+        ..., 
+        ge=settings.MIN_CHICKEN_COUNT, 
+        le=settings.MAX_CHICKEN_COUNT,
+        description="Number of chickens"
+    )
+    breed: str = Field(..., min_length=1, description="Breed of chickens (e.g., 'laying hen')")
+    average_weight_kg: float = Field(
+        ..., 
+        ge=settings.MIN_WEIGHT_KG, 
+        le=settings.MAX_WEIGHT_KG,
+        description="Average weight in kilograms"
+    )
+    age_weeks: int = Field(
+        ..., 
+        ge=settings.MIN_AGE_WEEKS, 
+        le=settings.MAX_AGE_WEEKS,
+        description="Age in weeks"
+    )
+    disease: str = Field(
+        ..., 
+        description="Disease affecting the chickens"
+    )
+    
+    @field_validator('breed')
+    @classmethod
+    def validate_breed(cls, v):
+        return v.strip().lower()
+    
+    @field_validator('disease')
+    @classmethod
+    def validate_disease(cls, v):
+        valid_diseases = ['respiratory_infection', 'coccidiosis', 'mites_lice', 'egg_binding', 'marek_disease', 'newcastle_disease']
+        if v.lower() not in valid_diseases:
+            raise ValueError(f'Disease must be one of: {", ".join(valid_diseases)}')
+        return v.lower()
+
+class ImmuneSupportNutrients(BaseModel):
+    """Model for immune support nutrients"""
+    vitamin_c_mg_per_kg: float = Field(..., ge=0, description="Vitamin C in mg per kg")
+    zinc_mg_per_kg: float = Field(..., ge=0, description="Zinc in mg per kg")
+    selenium_mg_per_kg: float = Field(..., ge=0, description="Selenium in mg per kg")
+    probiotics_cfu_per_kg: float = Field(..., ge=0, description="Probiotics in CFU per kg")
+    omega_3_fatty_acids_percent: float = Field(..., ge=0, le=100, description="Omega-3 fatty acids percentage")
+
+class DiseaseTreatment(BaseModel):
+    """Model for disease treatment information"""
+    treatment_approach: str = Field(..., description="Overall treatment strategy")
+    feed_modifications: List[str] = Field(..., description="Feed modifications needed")
+    supplements: List[str] = Field(..., description="Supplements to add")
+    environmental_changes: List[str] = Field(..., description="Environmental changes required")
+    monitoring_points: List[str] = Field(..., description="Key monitoring points")
+    recovery_timeline: str = Field(..., description="Expected recovery period")
+
+class DiseaseRecoveryFeedComposition(BaseModel):
+    """Model for disease recovery feed composition"""
+    crude_protein_percent: float = Field(..., ge=0, le=100)
+    metabolizable_energy_kcal_per_kg: float = Field(..., ge=0)
+    crude_fat_percent: float = Field(..., ge=0, le=100)
+    crude_fiber_percent: float = Field(..., ge=0, le=100)
+    calcium_percent: float = Field(..., ge=0, le=100)
+    phosphorus_percent: float = Field(..., ge=0, le=100)
+    lysine_percent: float = Field(..., ge=0, le=100)
+    methionine_percent: float = Field(..., ge=0, le=100)
+    vitamins: VitaminComposition
+    minerals: MineralComposition
+    immune_support_nutrients: ImmuneSupportNutrients
+
+class DiseaseRecoveryRecommendation(BaseModel):
+    """Model for complete disease recovery recommendation response"""
+    recovery_feed_composition: DiseaseRecoveryFeedComposition
+    daily_feed_amount_per_bird_kg: float = Field(..., ge=0)
+    total_daily_feed_kg: float = Field(..., ge=0)
+    disease_treatment: DiseaseTreatment
+    feeding_schedule: List[str] = Field(..., description="Recommended feeding schedule")
+    special_considerations: List[str] = Field(..., description="Special considerations for recovery")
+    request_info: RequestInfo

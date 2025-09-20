@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Dict, Any
 import logging
 
-from app.models.chicken import ChickenInfo, FeedCalculationResponse, WeeklyRecipeResponse
+from app.models.chicken import ChickenInfo, FeedCalculationResponse, WeeklyRecipeResponse, ChickenDiseaseInfo, DiseaseRecoveryRecommendation
 from app.services.bedrock_service import BedrockService
 from app.core.config import settings
 
@@ -221,4 +221,37 @@ async def generate_weekly_recipes(chicken_info: ChickenInfo):
         raise
     except Exception as e:
         logger.error(f"Unexpected error in generate_weekly_recipes: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.post("/disease-recovery", response_model=Dict[str, Any])
+async def generate_disease_recovery_recommendation(disease_info: ChickenDiseaseInfo):
+    """
+    Generate disease recovery feed recommendations for diseased chickens
+    
+    This endpoint provides comprehensive recovery recommendations including:
+    - **recovery_feed_composition**: Specialized feed composition for disease recovery
+    - **disease_treatment**: Treatment approach, feed modifications, supplements, and environmental changes
+    - **feeding_schedule**: Optimized feeding schedule for recovery
+    - **special_considerations**: Disease-specific care instructions
+    
+    Input parameters:
+    - **count**: Number of chickens (1-10000)
+    - **breed**: Breed of chickens (e.g., 'laying hen')
+    - **average_weight_kg**: Average weight in kilograms (0.1-10.0)
+    - **age_weeks**: Age in weeks (1-200)
+    - **disease**: Disease affecting the chickens (respiratory_infection, coccidiosis, mites_lice, egg_binding, marek_disease, newcastle_disease)
+    """
+    try:
+        logger.info(f"Processing disease recovery request for {disease_info.count} {disease_info.breed} chickens with {disease_info.disease}")
+        
+        # Generate disease recovery recommendation
+        recommendation = bedrock_service.generate_disease_recovery_recommendation(disease_info)
+        
+        logger.info("Disease recovery recommendation generated successfully")
+        return recommendation
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in generate_disease_recovery_recommendation: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

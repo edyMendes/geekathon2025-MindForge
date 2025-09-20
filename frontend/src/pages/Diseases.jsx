@@ -3,6 +3,8 @@ import { AlertTriangle, Heart, Pill, Activity } from "lucide-react";
 import { listProfiles, loadProfile } from "../hooks/useSettings.js";
 import DiseaseTrackingCalendar from "../components/DiseaseTrackingCalendar.jsx";
 import CurativeFeeds from "../components/CurativeFeeds.jsx";
+import ProfileNameModal from "../components/ProfileNameModal.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
 
 export default function Diseases() {
   const [selectedDisease, setSelectedDisease] = useState("");
@@ -15,6 +17,12 @@ export default function Diseases() {
   });
   const [treatment, setTreatment] = useState(null);
   const [savedDiseaseProfiles, setSavedDiseaseProfiles] = useState([]);
+  
+  // Modal states
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showLoadModal, setShowLoadModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
 
   // Disease database with comprehensive information
   const diseaseDatabase = {
@@ -225,14 +233,11 @@ export default function Diseases() {
     return totalCost.toFixed(2);
   };
 
-  const saveDiseaseProfile = () => {
+  const handleSaveDiseaseProfile = (profileName) => {
     if (!selectedDisease || !treatment) {
       alert("Please calculate treatment first");
       return;
     }
-
-    const profileName = prompt("Enter a name for this disease profile:");
-    if (!profileName) return;
 
     const diseaseProfile = {
       id: Date.now().toString(),
@@ -248,25 +253,48 @@ export default function Diseases() {
     existingProfiles.push(diseaseProfile);
     localStorage.setItem('diseaseProfiles', JSON.stringify(existingProfiles));
     setSavedDiseaseProfiles(existingProfiles);
-    
-    alert(`Disease profile "${profileName}" saved successfully!`);
+    setShowSaveModal(false);
   };
 
-  const loadDiseaseProfile = (profileId) => {
-    const profile = savedDiseaseProfiles.find(p => p.id === profileId);
+  const handleLoadDiseaseProfile = (profileName) => {
+    const profile = savedDiseaseProfiles.find(p => p.name === profileName);
     if (!profile) return;
 
     setSelectedDisease(profile.disease);
     setChickenData(profile.chickenData);
     setTreatment(profile.treatment);
+    setShowLoadModal(false);
   };
 
-  const deleteDiseaseProfile = (profileId) => {
-    if (!confirm("Are you sure you want to delete this disease profile?")) return;
-
+  const handleDeleteDiseaseProfile = (profileId) => {
     const updatedProfiles = savedDiseaseProfiles.filter(p => p.id !== profileId);
     localStorage.setItem('diseaseProfiles', JSON.stringify(updatedProfiles));
     setSavedDiseaseProfiles(updatedProfiles);
+    setShowDeleteModal(false);
+  };
+
+  const openSaveModal = () => {
+    if (!selectedDisease || !treatment) {
+      alert("Please calculate treatment first");
+      return;
+    }
+    setShowSaveModal(true);
+  };
+
+  const openLoadModal = () => {
+    if (savedDiseaseProfiles.length === 0) {
+      alert("No disease profiles available.");
+      return;
+    }
+    setShowLoadModal(true);
+  };
+
+  const openDeleteModal = (profileId) => {
+    const profile = savedDiseaseProfiles.find(p => p.id === profileId);
+    if (profile) {
+      setSelectedProfile(profile);
+      setShowDeleteModal(true);
+    }
   };
 
 
@@ -452,7 +480,7 @@ export default function Diseases() {
                 </p>
               </div>
               <button
-                onClick={saveDiseaseProfile}
+                onClick={openSaveModal}
                 className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200 flex items-center"
               >
                 <Heart className="mr-2" />
@@ -524,7 +552,7 @@ export default function Diseases() {
                     {profile.name}
                   </h3>
                   <button
-                    onClick={() => deleteDiseaseProfile(profile.id)}
+                    onClick={() => openDeleteModal(profile.id)}
                     className="text-red-500 hover:text-red-700 text-sm"
                   >
                     Delete
@@ -539,7 +567,7 @@ export default function Diseases() {
                 </div>
                 
                 <button
-                  onClick={() => loadDiseaseProfile(profile.id)}
+                  onClick={() => handleLoadDiseaseProfile(profile.name)}
                   className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors duration-200"
                 >
                   Load Profile
@@ -549,6 +577,39 @@ export default function Diseases() {
           </div>
         </div>
       )}
+
+      {/* Modals */}
+      <ProfileNameModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSave={handleSaveDiseaseProfile}
+        title="Save Disease Profile"
+        placeholder="Enter disease profile name..."
+        existingProfiles={savedDiseaseProfiles.map(p => p.name)}
+        type="disease"
+      />
+
+      <ProfileNameModal
+        isOpen={showLoadModal}
+        onClose={() => setShowLoadModal(false)}
+        onSave={handleLoadDiseaseProfile}
+        title="Load Disease Profile"
+        placeholder="Select or enter profile name..."
+        existingProfiles={savedDiseaseProfiles.map(p => p.name)}
+        type="disease"
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={() => handleDeleteDiseaseProfile(selectedProfile?.id)}
+        title="Delete Disease Profile"
+        message="Are you sure you want to delete this disease profile?"
+        confirmText="Delete"
+        type="danger"
+        destructive={true}
+        itemName={selectedProfile?.name}
+      />
     </div>
   );
 }

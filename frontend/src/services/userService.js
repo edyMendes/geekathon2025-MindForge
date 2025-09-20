@@ -1,13 +1,13 @@
   import apiService from './apiService.js';
 import { getApiUrl, getAuthConfig } from '../config/api.js';
 
-// Serviço para gerenciamento de usuários
+// Service for user management
 class UserService {
   constructor() {
     this.authConfig = getAuthConfig();
   }
 
-  // Verificar se um usuário existe na API
+  // Check if a user exists in the API
   async checkUserExists(identifier) {
     try {
       const response = await fetch(getApiUrl(this.authConfig.CHECK_USER_ENDPOINT), {
@@ -16,7 +16,7 @@ class UserService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          identifier: identifier // pode ser email, username, ou ID
+          identifier: identifier // can be email, username, or ID
         }),
       });
 
@@ -25,33 +25,33 @@ class UserService {
         return { 
           exists: true, 
           user: data.user,
-          message: data.message || 'Usuário encontrado'
+          message: data.message || 'User found'
         };
       } else if (response.status === 404) {
         return { 
           exists: false, 
           user: null,
-          message: 'Usuário não encontrado'
+          message: 'User not found'
         };
       } else {
         const error = await response.json();
         return { 
           exists: false, 
           user: null,
-          error: error.message || 'Erro ao verificar usuário'
+          error: error.message || 'Error checking user'
         };
       }
     } catch (error) {
-      console.error('Erro ao verificar usuário:', error);
+      console.error('Error checking user:', error);
       return { 
         exists: false, 
         user: null,
-        error: 'Erro de conexão ao verificar usuário'
+        error: 'Connection error while checking user'
       };
     }
   }
 
-  // Verificar se email está disponível para registro
+  // Check if email is available for registration
   async checkEmailAvailability(email) {
     try {
       const response = await fetch(getApiUrl(`${this.authConfig.CHECK_USER_ENDPOINT}/email`), {
@@ -66,25 +66,25 @@ class UserService {
         const data = await response.json();
         return { 
           available: data.available,
-          message: data.message || 'Email disponível'
+          message: data.message || 'Email available'
         };
       } else {
         const error = await response.json();
         return { 
           available: false,
-          error: error.message || 'Erro ao verificar email'
+          error: error.message || 'Error checking email'
         };
       }
     } catch (error) {
-      console.error('Erro ao verificar email:', error);
+      console.error('Error checking email:', error);
       return { 
         available: false,
-        error: 'Erro de conexão ao verificar email'
+        error: 'Connection error while checking email'
       };
     }
   }
 
-  // Verificar se username está disponível para registro
+  // Check if username is available for registration
   async checkUsernameAvailability(username) {
     try {
       const response = await fetch(getApiUrl(`${this.authConfig.CHECK_USER_ENDPOINT}/username`), {
@@ -99,25 +99,25 @@ class UserService {
         const data = await response.json();
         return { 
           available: data.available,
-          message: data.message || 'Username disponível'
+          message: data.message || 'Username available'
         };
       } else {
         const error = await response.json();
         return { 
           available: false,
-          error: error.message || 'Erro ao verificar username'
+          error: error.message || 'Error checking username'
         };
       }
     } catch (error) {
-      console.error('Erro ao verificar username:', error);
+      console.error('Error checking username:', error);
       return { 
         available: false,
-        error: 'Erro de conexão ao verificar username'
+        error: 'Connection error while checking username'
       };
     }
   }
 
-  // Registrar novo usuário
+  // Register new user
   async registerUser(userData) {
     try {
       const response = await fetch(getApiUrl(this.authConfig.REGISTER_ENDPOINT), {
@@ -133,25 +133,25 @@ class UserService {
         return { 
           success: true, 
           user: data.user,
-          message: data.message || 'Usuário registrado com sucesso'
+          message: data.message || 'User registered successfully'
         };
       } else {
         const error = await response.json();
         return { 
           success: false, 
-          error: error.message || 'Erro ao registrar usuário'
+          error: error.message || 'Error registering user'
         };
       }
     } catch (error) {
-      console.error('Erro ao registrar usuário:', error);
+      console.error('Error registering user:', error);
       return { 
         success: false, 
-        error: 'Erro de conexão ao registrar usuário'
+        error: 'Connection error while registering user'
       };
     }
   }
 
-  // Buscar informações do usuário por ID
+  // Get user information by ID
   async getUserById(userId) {
     try {
       const response = await apiService.get(`/users/${userId}`);
@@ -162,57 +162,57 @@ class UserService {
     } catch (error) {
       return { 
         success: false, 
-        error: error.message || 'Erro ao buscar usuário'
+        error: error.message || 'Error fetching user'
       };
     }
   }
 
-  // Atualizar perfil do usuário
+  // Update user profile
   async updateUserProfile(userId, profileData) {
     try {
       const response = await apiService.put(`/users/${userId}`, profileData);
       return { 
         success: true, 
         user: response,
-        message: 'Perfil atualizado com sucesso'
+        message: 'Profile updated successfully'
       };
     } catch (error) {
       return { 
         success: false, 
-        error: error.message || 'Erro ao atualizar perfil'
+        error: error.message || 'Error updating profile'
       };
     }
   }
 
-  // Deletar usuário
+  // Delete user
   async deleteUser(userId) {
     try {
       await apiService.delete(`/users/${userId}`);
       return { 
         success: true, 
-        message: 'Usuário deletado com sucesso'
+        message: 'User deleted successfully'
       };
     } catch (error) {
       return { 
         success: false, 
-        error: error.message || 'Erro ao deletar usuário'
+        error: error.message || 'Error deleting user'
       };
     }
   }
 
-  // Validar formato de email
+  // Validate email format
   validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   }
 
-  // Validar formato de username
+  // Validate username format
   validateUsername(username) {
     const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
     return usernameRegex.test(username);
   }
 
-  // Validar força da senha
+  // Validate password strength
   validatePassword(password) {
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(password);
@@ -233,7 +233,7 @@ class UserService {
   }
 }
 
-// Instância singleton
+// Singleton instance
 const userService = new UserService();
 
 export default userService;

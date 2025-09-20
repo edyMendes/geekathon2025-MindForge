@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useUserVerification, useAvailabilityCheck, useFormValidation } from '../hooks/useUserVerification.js';
 import { CheckCircle, XCircle, AlertCircle, User, Mail } from 'lucide-react';
 
-// Exemplo de como usar a verificação de usuários
+// Example of how to use user verification
 export default function UserVerificationExample() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -87,14 +87,14 @@ export default function UserVerificationExample() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-6">
-        Verificação de Usuários
+        User Verification
       </h2>
 
-      {/* Verificação de Email */}
+      {/* Email Verification */}
       <div className="card p-6">
         <h3 className="text-lg font-semibold mb-4 flex items-center">
           <Mail className="w-5 h-5 mr-2" />
-          Verificação de Email
+          Email Verification
         </h3>
         
         <div className="space-y-4">
@@ -105,7 +105,7 @@ export default function UserVerificationExample() {
               value={email}
               onChange={handleEmailChange}
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-              placeholder="Digite um email"
+              placeholder="Enter an email"
             />
             {email && (
               <div className="mt-2 flex items-center text-sm">
@@ -126,12 +126,12 @@ export default function UserVerificationExample() {
             disabled={!email || userLoading}
             className="btn-primary px-4 py-2 rounded-lg disabled:opacity-50"
           >
-            {userLoading ? 'Verificando...' : 'Verificar Usuário'}
+            {userLoading ? 'Verifying...' : 'Verify User'}
           </button>
 
           {userData && (
             <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <h4 className="font-semibold text-green-800 dark:text-green-200">Usuário Encontrado:</h4>
+              <h4 className="font-semibold text-green-800 dark:text-green-200">User Found:</h4>
               <pre className="text-sm text-green-700 dark:text-green-300 mt-2">
                 {JSON.stringify(userData, null, 2)}
               </pre>
@@ -146,11 +146,11 @@ export default function UserVerificationExample() {
         </div>
       </div>
 
-      {/* Verificação de Username */}
+      {/* Username Verification */}
       <div className="card p-6">
         <h3 className="text-lg font-semibold mb-4 flex items-center">
           <User className="w-5 h-5 mr-2" />
-          Verificação de Username
+          Username Verification
         </h3>
         
         <div className="space-y-4">
@@ -161,7 +161,7 @@ export default function UserVerificationExample() {
               value={username}
               onChange={handleUsernameChange}
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-              placeholder="Digite um username"
+              placeholder="Enter a username"
             />
             {username && (
               <div className="mt-2 flex items-center text-sm">
@@ -179,13 +179,13 @@ export default function UserVerificationExample() {
         </div>
       </div>
 
-      {/* Validação de Senha */}
+      {/* Password Validation */}
       <div className="card p-6">
-        <h3 className="text-lg font-semibold mb-4">Validação de Senha</h3>
+        <h3 className="text-lg font-semibold mb-4">Password Validation</h3>
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Senha</label>
+            <label className="block text-sm font-medium mb-2">Password</label>
             <input
               type="password"
               value={password}
@@ -193,7 +193,7 @@ export default function UserVerificationExample() {
               className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 ${
                 errors.password ? 'border-red-300 dark:border-red-600' : 'border-slate-300 dark:border-slate-600'
               }`}
-              placeholder="Digite uma senha"
+              placeholder="Enter a password"
             />
             {errors.password && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
@@ -202,9 +202,9 @@ export default function UserVerificationExample() {
         </div>
       </div>
 
-      {/* Status Geral */}
+      {/* General Status */}
       <div className="card p-6">
-        <h3 className="text-lg font-semibold mb-4">Status da Verificação</h3>
+        <h3 className="text-lg font-semibold mb-4">Verification Status</h3>
         
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -212,8 +212,8 @@ export default function UserVerificationExample() {
             <div className="flex items-center">
               {getStatusIcon(emailAvailable)}
               <span className="ml-2 text-sm">
-                {emailAvailable === null ? 'Não verificado' : 
-                 emailAvailable ? 'Disponível' : 'Em uso'}
+                {emailAvailable === null ? 'Not verified' : 
+                 emailAvailable ? 'Available' : 'In use'}
               </span>
             </div>
           </div>
@@ -223,19 +223,19 @@ export default function UserVerificationExample() {
             <div className="flex items-center">
               {getStatusIcon(usernameAvailable)}
               <span className="ml-2 text-sm">
-                {usernameAvailable === null ? 'Não verificado' : 
-                 usernameAvailable ? 'Disponível' : 'Em uso'}
+                  {usernameAvailable === null ? 'Not verified' : 
+                 usernameAvailable ? 'Available' : 'In use'}
               </span>
             </div>
           </div>
           
           <div className="flex items-center justify-between">
-            <span>Usuário Existe:</span>
+            <span>User Exists:</span>
             <div className="flex items-center">
               {getStatusIcon(userExists)}
               <span className="ml-2 text-sm">
-                {userExists === null ? 'Não verificado' : 
-                 userExists ? 'Sim' : 'Não'}
+                {userExists === null ? 'Not verified' : 
+                 userExists ? 'Yes' : 'No'}
               </span>
             </div>
           </div>

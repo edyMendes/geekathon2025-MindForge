@@ -17,12 +17,53 @@ function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authPage, setAuthPage] = useState("login");
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Verificar se a API está configurada
   const isApiConfigured = () => {
     const apiUrl = import.meta.env.VITE_API_BASE_URL;
     return apiUrl && apiUrl !== 'undefined' && apiUrl.trim() !== '';
   };
+
+  // Check for existing authentication on app load
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      const token = localStorage.getItem('api_token');
+      const userData = localStorage.getItem('user_data');
+      
+      if (token && userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          
+          // Validate token by making a simple API call
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/${parsedUser.userId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          
+          if (response.ok) {
+            setUser(parsedUser);
+            setIsAuthenticated(true);
+          } else {
+            // Token is invalid, clear stored data
+            localStorage.removeItem('api_token');
+            localStorage.removeItem('user_data');
+            localStorage.removeItem('refresh_token');
+          }
+        } catch (error) {
+          console.error('Error validating session:', error);
+          // Clear invalid data
+          localStorage.removeItem('api_token');
+          localStorage.removeItem('user_data');
+          localStorage.removeItem('refresh_token');
+        }
+      }
+      setIsLoading(false);
+    };
+
+    checkAuthStatus();
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.add("aos-ready");
@@ -34,18 +75,26 @@ function AppContent() {
     setUser(userData);
     setIsAuthenticated(true);
     setPage("dashboard");
+    // Save user data to localStorage for persistence
+    localStorage.setItem('user_data', JSON.stringify(userData));
   };
 
   const handleRegister = (userData) => {
     setUser(userData);
     setIsAuthenticated(true);
     setPage("dashboard");
+    // Save user data to localStorage for persistence
+    localStorage.setItem('user_data', JSON.stringify(userData));
   };
 
   const handleLogout = () => {
     setUser(null);
     setIsAuthenticated(false);
     setPage("dashboard");
+    // Clear user data from localStorage
+    localStorage.removeItem('user_data');
+    localStorage.removeItem('api_token');
+    localStorage.removeItem('refresh_token');
   };
 
   const switchAuthPage = (page) => {
@@ -55,6 +104,18 @@ function AppContent() {
   // Mostrar aviso se API não estiver configurada
   if (!isApiConfigured()) {
     return <ApiNotConfigured />;
+  }
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="gradient-bg min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   // Show authentication pages if not logged in
@@ -86,10 +147,10 @@ function AppContent() {
         {/* Main Header */}
         <header className="text-center mb-8">
           <h1 className="text-4xl font-extrabold mb-2 title-gradient">
-            Gestor de Ração para Galinhas
+            Manager of Feed for Chickens
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400">
-            Otimize a alimentação do seu plantel com recomendações personalizadas
+            Optimize the feeding of your flock with personalized recommendations
           </p>
         </header>
 

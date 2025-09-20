@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import userService from '../services/userService.js';
 
-// Hook para verificação de usuários
+// Hook for user verification
 export const useUserVerification = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -27,7 +27,7 @@ export const useUserVerification = () => {
       setUserData(result.user);
       return result;
     } catch (err) {
-      const errorMessage = err.message || 'Erro ao verificar usuário';
+      const errorMessage = err.message || 'Error verifying user';
       setError(errorMessage);
       setUserExists(false);
       return { exists: false, error: errorMessage };
@@ -58,7 +58,7 @@ export const useUserVerification = () => {
   };
 };
 
-// Hook para verificação de disponibilidade de email/username
+    // Hook for email/username availability check
 export const useAvailabilityCheck = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -67,9 +67,9 @@ export const useAvailabilityCheck = () => {
 
   const checkEmail = useCallback(async (email) => {
     if (!userService.validateEmail(email)) {
-      setError('Formato de email inválido');
+      setError('Invalid email format');
       setEmailAvailable(false);
-      return { available: false, error: 'Formato de email inválido' };
+      return { available: false, error: 'Invalid email format' };
     }
 
     setLoading(true);
@@ -87,7 +87,7 @@ export const useAvailabilityCheck = () => {
       setEmailAvailable(result.available);
       return result;
     } catch (err) {
-      const errorMessage = err.message || 'Erro ao verificar email';
+      const errorMessage = err.message || 'Error verifying email';
       setError(errorMessage);
       setEmailAvailable(false);
       return { available: false, error: errorMessage };
@@ -98,9 +98,9 @@ export const useAvailabilityCheck = () => {
 
   const checkUsername = useCallback(async (username) => {
     if (!userService.validateUsername(username)) {
-      setError('Username deve ter 3-20 caracteres e conter apenas letras, números e _');
+      setError('Username must be 3-20 characters and contain only letters, numbers and _');
       setUsernameAvailable(false);
-      return { available: false, error: 'Formato de username inválido' };
+      return { available: false, error: 'Invalid username format' };
     }
 
     setLoading(true);
@@ -118,7 +118,7 @@ export const useAvailabilityCheck = () => {
       setUsernameAvailable(result.available);
       return result;
     } catch (err) {
-      const errorMessage = err.message || 'Erro ao verificar username';
+      const errorMessage = err.message || 'Error verifying username';
       setError(errorMessage);
       setUsernameAvailable(false);
       return { available: false, error: errorMessage };
@@ -150,7 +150,7 @@ export const useAvailabilityCheck = () => {
   };
 };
 
-// Hook para registro de usuários
+// Hook for user registration
 export const useUserRegistration = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -161,24 +161,24 @@ export const useUserRegistration = () => {
     setError(null);
     setSuccess(false);
 
-    // Validar dados antes de enviar
+    // Validate data before sendingß
     if (!userService.validateEmail(userData.email)) {
-      setError('Email inválido');
+      setError('Invalid email');
       setLoading(false);
-      return { success: false, error: 'Email inválido' };
+      return { success: false, error: 'Invalid email' };
     }
 
     if (!userService.validateUsername(userData.username)) {
-      setError('Username inválido');
+      setError('Invalid username');
       setLoading(false);
-      return { success: false, error: 'Username inválido' };
+      return { success: false, error: 'Invalid username' };
     }
 
     const passwordValidation = userService.validatePassword(userData.password);
     if (!passwordValidation.isValid) {
-      setError('Senha não atende aos requisitos');
+      setError('Password does not meet requirements');
       setLoading(false);
-      return { success: false, error: 'Senha não atende aos requisitos' };
+      return { success: false, error: 'Password does not meet requirements' };
     }
 
     try {
@@ -192,7 +192,7 @@ export const useUserRegistration = () => {
         return result;
       }
     } catch (err) {
-      const errorMessage = err.message || 'Erro ao registrar usuário';
+      const errorMessage = err.message || 'Error registering user';
       setError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -220,7 +220,7 @@ export const useUserRegistration = () => {
   };
 };
 
-// Hook para validação de formulários
+// Hook for form validation
 export const useFormValidation = () => {
   const [errors, setErrors] = useState({});
 
@@ -230,33 +230,33 @@ export const useFormValidation = () => {
     switch (field) {
       case 'email':
         if (!value) {
-          error = 'Email é obrigatório';
+            error = 'Email is required';
         } else if (!userService.validateEmail(value)) {
-          error = 'Formato de email inválido';
+          error = 'Invalid email format';
         }
         break;
 
       case 'username':
         if (!value) {
-          error = 'Username é obrigatório';
+          error = 'Username is required';
         } else if (!userService.validateUsername(value)) {
-          error = 'Username deve ter 3-20 caracteres e conter apenas letras, números e _';
+          error = 'Username must be 3-20 characters and contain only letters, numbers and _';
         }
         break;
 
       case 'password':
         if (!value) {
-          error = 'Senha é obrigatória';
+          error = 'Password is required';
         } else {
           const validation = userService.validatePassword(value);
           if (!validation.isValid) {
-            error = 'Senha deve ter pelo menos 8 caracteres, incluindo maiúsculas, minúsculas e números';
+            error = 'Password must be at least 8 characters, including uppercase, lowercase and numbers';
           }
         }
         break;
 
       case 'confirmPassword':
-        // Este campo será validado em conjunto com password
+        // This field will be validated together with passwordß
         break;
 
       default:
@@ -275,39 +275,39 @@ export const useFormValidation = () => {
     const newErrors = {};
     let isValid = true;
 
-    // Validar email
+    // Validate email
     if (!formData.email) {
-      newErrors.email = 'Email é obrigatório';
+      newErrors.email = 'Email is required';
       isValid = false;
     } else if (!userService.validateEmail(formData.email)) {
-      newErrors.email = 'Formato de email inválido';
+      newErrors.email = 'Invalid email format';
       isValid = false;
     }
 
-    // Validar username
+    // Validate username
     if (!formData.username) {
-      newErrors.username = 'Username é obrigatório';
+      newErrors.username = 'Username is required';
       isValid = false;
     } else if (!userService.validateUsername(formData.username)) {
-      newErrors.username = 'Username deve ter 3-20 caracteres e conter apenas letras, números e _';
+      newErrors.username = 'Username must be 3-20 characters and contain only letters, numbers and _';
       isValid = false;
     }
 
-    // Validar senha
+    // Validate password
     if (!formData.password) {
-      newErrors.password = 'Senha é obrigatória';
+      newErrors.password = 'Password is required';
       isValid = false;
     } else {
       const passwordValidation = userService.validatePassword(formData.password);
       if (!passwordValidation.isValid) {
-        newErrors.password = 'Senha deve ter pelo menos 8 caracteres, incluindo maiúsculas, minúsculas e números';
+        newErrors.password = 'Password must be at least 8 characters, including uppercase, lowercase and numbers';
         isValid = false;
       }
     }
 
-    // Validar confirmação de senha
+    // Validate confirm password
     if (formData.confirmPassword && formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Senhas não coincidem';
+      newErrors.confirmPassword = 'Passwords do not match';
       isValid = false;
     }
 

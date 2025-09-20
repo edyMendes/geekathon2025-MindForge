@@ -78,18 +78,18 @@ export default function EnhancedLogin({ onLogin, onSwitchToRegister }) {
 
   const getEmailStatus = () => {
     if (isCheckingUser) {
-      return { icon: null, text: "Verificando usuário...", color: "text-blue-500" };
+      return { icon: null, text: "Checking user...", color: "text-blue-500" };
     }
     
     if (userVerificationError) {
-      return { icon: AlertCircle, text: "Erro ao verificar usuário", color: "text-red-500" };
+      return { icon: AlertCircle, text: "Error checking user", color: "text-red-500" };
     }
     
     if (userCheckResult) {
       if (userCheckResult.exists) {
-        return { icon: CheckCircle, text: "Usuário encontrado", color: "text-green-500" };
+        return { icon: CheckCircle, text: "User found", color: "text-green-500" };
       } else {
-        return { icon: AlertCircle, text: "Usuário não encontrado", color: "text-red-500" };
+        return { icon: AlertCircle, text: "User not found", color: "text-red-500" };
       }
     }
     
@@ -106,16 +106,16 @@ export default function EnhancedLogin({ onLogin, onSwitchToRegister }) {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold title-gradient">
-            Entrar na sua conta
+            Login to your account
           </h2>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-            Acesse o Gestor de Ração para Galinhas
+            Access the Feed Manager for Chickens
           </p>
         </div>
 
         <div className="card p-8 shadow-lg dark:shadow-xl">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Mensagens de erro de autenticação */}
+            {/* Authentication error messages */}
             {authError && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm flex items-center">
                 <AlertCircle className="w-4 h-4 mr-2" />
@@ -123,7 +123,7 @@ export default function EnhancedLogin({ onLogin, onSwitchToRegister }) {
               </div>
             )}
 
-            {/* Campo de Email */}
+            {/* Email field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Email
@@ -155,7 +155,7 @@ export default function EnhancedLogin({ onLogin, onSwitchToRegister }) {
                 )}
               </div>
               
-              {/* Status do email */}
+              {/* Email status */}
               {emailStatus && (
                 <p className={`mt-1 text-xs ${emailStatus.color} flex items-center`}>
                   {emailStatus.icon && <emailStatus.icon className="w-3 h-3 mr-1" />}
@@ -163,7 +163,7 @@ export default function EnhancedLogin({ onLogin, onSwitchToRegister }) {
                 </p>
               )}
               
-              {/* Erro de validação */}
+              {/* Validation error */}
               {errors.email && (
                 <p className="mt-1 text-xs text-red-600 dark:text-red-400">
                   {errors.email}
@@ -171,10 +171,10 @@ export default function EnhancedLogin({ onLogin, onSwitchToRegister }) {
               )}
             </div>
 
-            {/* Campo de Senha */}
+            {/* Password field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Senha
+                Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -191,7 +191,7 @@ export default function EnhancedLogin({ onLogin, onSwitchToRegister }) {
                   className={`block w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 ${
                     errors.password ? 'border-red-300 dark:border-red-600' : 'border-slate-300 dark:border-slate-600'
                   }`}
-                  placeholder="Sua senha"
+                  placeholder="Your password"
                 />
                 <button
                   type="button"
@@ -206,7 +206,7 @@ export default function EnhancedLogin({ onLogin, onSwitchToRegister }) {
                 </button>
               </div>
               
-              {/* Erro de validação */}
+              {/* Validation error */}
               {errors.password && (
                 <p className="mt-1 text-xs text-red-600 dark:text-red-400">
                   {errors.password}
@@ -214,7 +214,7 @@ export default function EnhancedLogin({ onLogin, onSwitchToRegister }) {
               )}
             </div>
 
-            {/* Botão de Login */}
+            {/* Login button */}
             <div>
               <button
                 type="submit"
@@ -224,26 +224,26 @@ export default function EnhancedLogin({ onLogin, onSwitchToRegister }) {
                 {authLoading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Entrando...
+                    Logging in...
                   </div>
                 ) : (
-                  "Entrar"
+                  "Login"
                 )}
               </button>
             </div>
 
-            {/* Link para registro */}
+              {/* Link to register */}
             <div className="text-center">
               <span className="text-sm text-slate-600 dark:text-slate-400">
-                Não tem uma conta?{" "}
+                Don't have an account?{" "}
                 <button
                   type="button"
                   onClick={onSwitchToRegister}
                   className="font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300"
                 >
-                  Cadastre-se aqui
+                  Register here
                 </button>
-              </span>
+              </span> 
             </div>
           </form>
         </div>

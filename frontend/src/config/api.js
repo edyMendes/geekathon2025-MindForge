@@ -1,49 +1,49 @@
-// Configuração da API externa
+// External API configuration
 const API_CONFIG = {
-  // URL base da API (pode ser alterada via variável de ambiente)
+  // API base URL (can be changed via environment variable)
   BASE_URL: import.meta.env.VITE_API_BASE_URL,
   
-  // Configurações de autenticação
+  // Authentication settings
   AUTH: {
-    // Tipo de autenticação (bearer, basic, api-key, etc.)
+    // Authentication type (bearer, basic, api-key, etc.)
     TYPE: 'bearer',
-    // Nome do header para o token (ex: 'Authorization', 'X-API-Key')
+    // Header name for token (ex: 'Authorization', 'X-API-Key')
     HEADER_NAME: 'Authorization',
-    // Prefixo do token (ex: 'Bearer ', 'Token ')
+    // Token prefix (ex: 'Bearer ', 'Token ')
     TOKEN_PREFIX: 'Bearer ',
-    // Endpoint para verificar se usuário existe
+    // Endpoint to check if user exists
     CHECK_USER_ENDPOINT: '/users/check-username',
-    // Endpoint para login
+    // Login endpoint
     LOGIN_ENDPOINT: '/users/login',
-    // Endpoint para refresh token
+    // Refresh token endpoint
     REFRESH_ENDPOINT: '/auth/refresh',
-    // Endpoint para logout
+    // Logout endpoint
     LOGOUT_ENDPOINT: '/auth/logout',
-    // Endpoint para registrar novo usuário
+    // Register new user endpoint
     REGISTER_ENDPOINT: '/users/register',
   },
   
-  // Configurações de timeout
+  // Timeout settings
   TIMEOUT: {
-    // Timeout para requisições em ms
+    // Request timeout in ms
     REQUEST: 10000,
-    // Timeout para upload de arquivos em ms
+    // File upload timeout in ms
     UPLOAD: 30000,
   },
   
-  // Configurações de retry
+  // Retry settings
   RETRY: {
-    // Número máximo de tentativas
+    // Maximum number of attempts
     MAX_ATTEMPTS: 3,
-    // Delay entre tentativas em ms
+    // Delay between attempts in ms
     DELAY: 1000,
-    // Status codes que devem ser retentados
+    // Status codes that should be retried
     RETRY_ON: [408, 429, 500, 502, 503, 504],
   },
   
-  // Endpoints específicos da aplicação
+  // Application specific endpoints
   ENDPOINTS: {
-    // Exemplo de endpoints para o seu projeto de galinhas
+    // Example endpoints for your chicken project
     CHICKENS: '/chickens',
     FEEDS: '/feeds',
     REPORTS: '/reports',
@@ -51,11 +51,11 @@ const API_CONFIG = {
     ANALYTICS: '/analytics',
   },
   
-  // Configurações de cache
+  // Cache settings
   CACHE: {
-    // Tempo de cache em ms (5 minutos por padrão)
+    // Cache time in ms (5 minutes by default)
     TTL: 5 * 60 * 1000,
-    // Chaves para cache
+    // Cache keys
     KEYS: {
       USER_PROFILE: 'user_profile',
       CHICKEN_DATA: 'chicken_data',
@@ -64,26 +64,26 @@ const API_CONFIG = {
   }
 };
 
-// Função para obter a URL completa de um endpoint
+// Function to get the complete URL of an endpoint
 export const getApiUrl = (endpoint) => {
-  const baseUrl = API_CONFIG.BASE_URL.replace(/\/$/, ''); // Remove barra final
+  const baseUrl = API_CONFIG.BASE_URL.replace(/\/$/, ''); // Remove trailing slash
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   return `${baseUrl}${cleanEndpoint}`;
 };
 
-// Função para obter configurações de autenticação
+// Function to get authentication settings
 export const getAuthConfig = () => API_CONFIG.AUTH;
 
-// Função para obter configurações de timeout
+// Function to get timeout settings
 export const getTimeoutConfig = () => API_CONFIG.TIMEOUT;
 
-// Função para obter configurações de retry
+// Function to get retry settings
 export const getRetryConfig = () => API_CONFIG.RETRY;
 
-// Função para obter endpoints
+// Function to get endpoints
 export const getEndpoints = () => API_CONFIG.ENDPOINTS;
 
-// Função para obter configurações de cache
+// Function to get cache settings
 export const getCacheConfig = () => API_CONFIG.CACHE;
 
 export default API_CONFIG;

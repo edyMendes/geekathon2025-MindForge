@@ -10,7 +10,7 @@ class ApiService {
     this.refreshToken = localStorage.getItem('refresh_token');
   }
 
-  // Método para definir o token de autenticação
+  // Method to set authentication token
   setToken(token, refreshToken = null) {
     this.token = token;
     this.refreshToken = refreshToken;
@@ -20,7 +20,7 @@ class ApiService {
     }
   }
 
-  // Método para limpar tokens
+  // Method to clear tokens
   clearTokens() {
     this.token = null;
     this.refreshToken = null;
@@ -28,7 +28,7 @@ class ApiService {
     localStorage.removeItem('refresh_token');
   }
 
-  // Método para obter headers de autenticação
+  // Method to get authentication headers
   getAuthHeaders() {
     const headers = {
       'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ class ApiService {
     return headers;
   }
 
-  // Método para fazer requisições com retry
+  // Method to make requests with retry
   async makeRequest(url, options = {}, attempt = 1) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutConfig.REQUEST);
@@ -58,13 +58,13 @@ class ApiService {
 
       clearTimeout(timeoutId);
 
-      // Se a resposta não é ok e deve ser retentada
+      // If response is not ok and should be retried
       if (!response.ok && this.retryConfig.RETRY_ON.includes(response.status) && attempt < this.retryConfig.MAX_ATTEMPTS) {
         await this.delay(this.retryConfig.DELAY * attempt);
         return this.makeRequest(url, options, attempt + 1);
       }
 
-      // Se token expirado, tentar refresh
+      // If token expired, try refresh
       if (response.status === 401 && this.refreshToken && attempt === 1) {
         const refreshed = await this.refreshAuthToken();
         if (refreshed) {
@@ -89,12 +89,12 @@ class ApiService {
     }
   }
 
-  // Método para delay entre tentativas
+  // Method for delay between attempts
   delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // Método para refresh do token
+  // Method to refresh token
   async refreshAuthToken() {
     if (!this.refreshToken) return false;
 
@@ -113,14 +113,14 @@ class ApiService {
         return true;
       }
     } catch (error) {
-      console.error('Erro ao renovar token:', error);
+      console.error('Error refreshing token:', error);
     }
 
     this.clearTokens();
     return false;
   }
 
-  // Método para verificar se usuário existe antes do login
+  // Method to check if user exists before login
   async checkUserExists(identifier) {
     try {
       const response = await fetch(getApiUrl(this.authConfig.CHECK_USER_ENDPOINT), {
@@ -138,17 +138,17 @@ class ApiService {
         return { success: true, exists: false, user: null };
       } else {
         const error = await response.json();
-        return { success: false, error: error.message || 'Erro ao verificar usuário' };
+        return { success: false, error: error.message || 'Error checking user' };
       }
     } catch (error) {
-      return { success: false, error: 'Erro de conexão ao verificar usuário' };
+      return { success: false, error: 'Connection error while checking user' };
     }
   }
 
-  // Método para login com verificação de usuário
+  // Method for login with user verification
   async login(credentials) {
     try {
-      // Primeiro verificar se o usuário existe
+      // First check if user exists
       const userCheck = await this.checkUserExists(credentials.username || credentials.email);
       
       if (!userCheck.success) {
@@ -158,12 +158,12 @@ class ApiService {
       if (!userCheck.exists) {
         return { 
           success: false, 
-          error: 'Usuário não encontrado',
+          error: 'User not found',
           userNotFound: true 
         };
       }
 
-      // Se usuário existe, proceder com login
+      // If user exists, proceed with login
       const response = await fetch(getApiUrl(this.authConfig.LOGIN_ENDPOINT), {
         method: 'POST',
         headers: {
@@ -174,28 +174,31 @@ class ApiService {
 
       if (response.ok) {
         const data = await response.json();
-        this.setToken(data.access_token, data.refresh_token);
+        // Generate a simple session token since our API doesn't provide JWT tokens
+        const sessionToken = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        this.setToken(sessionToken);
         return { 
           success: true, 
           data: {
             ...data,
-            user: userCheck.user
+            user: userCheck.user,
+            access_token: sessionToken
           }
         };
       } else {
         const error = await response.json();
         return { 
           success: false, 
-          error: error.message || 'Credenciais inválidas',
+          error: error.message || 'Invalid credentials',
           invalidCredentials: true 
         };
       }
     } catch (error) {
-      return { success: false, error: 'Erro de conexão' };
+      return { success: false, error: 'Connection error' };
     }
   }
 
-  // Método para logout
+  // Method for logout
   async logout() {
     try {
       if (this.token) {
@@ -204,13 +207,13 @@ class ApiService {
         });
       }
     } catch (error) {
-      console.error('Erro no logout:', error);
+      console.error('Logout error:', error);
     } finally {
       this.clearTokens();
     }
   }
 
-  // Métodos CRUD genéricos
+  // Generic CRUD methods
   async get(endpoint, params = {}) {
     const url = new URL(getApiUrl(endpoint));
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
@@ -264,7 +267,7 @@ class ApiService {
     return response.json();
   }
 
-  // Método para upload de arquivos
+  // Method for file upload
   async upload(endpoint, file, onProgress = null) {
     const formData = new FormData();
     formData.append('file', file);
@@ -296,7 +299,7 @@ class ApiService {
   }
 }
 
-// Instância singleton do serviço
+// Singleton service instance
 const apiService = new ApiService();
 
 export default apiService;

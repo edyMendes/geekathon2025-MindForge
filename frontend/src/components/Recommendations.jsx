@@ -11,9 +11,9 @@ export default function Recommendations({ model }) {
   if (!model) {
     return (
       <div className="card shadow-sm p-6 card-hover" data-aos="fade-left">
-        <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-200 mb-6">Recomendações</h2>
+        <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-200 mb-6">Recommendations</h2>
         <div className="text-center py-12 text-slate-400 dark:text-slate-500">
-          Preencha o formulário para obter recomendações.
+          Fill the form to get recommendations.
         </div>
       </div>
     );
@@ -24,34 +24,34 @@ export default function Recommendations({ model }) {
 
   return (
     <div className="card shadow-sm p-6 card-hover" data-aos="fade-left">
-      <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-200 mb-6">Recomendações</h2>
+      <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-200 mb-6">Recommendations</h2>
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="border border-slate-200 dark:border-slate-600 rounded-lg p-4 bg-white/80 dark:bg-slate-800/80" data-surge>
-          <h3 className="font-semibold mb-2 text-slate-800 dark:text-slate-200">Horário de Alimentação</h3>
+          <h3 className="font-semibold mb-2 text-slate-800 dark:text-slate-200">Feeding Schedule</h3>
           <ul className="space-y-2">
             {times.map((t) => (
               <li key={t} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-700 rounded">
                 <span className="font-semibold text-slate-900 dark:text-slate-100">{t}</span>
-                <span className="text-sm text-slate-600 dark:text-slate-400">{perMeal} g/galinha</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400">{perMeal} g/chicken</span>
               </li>
             ))}
           </ul>
         </div>
 
         <div className="border border-slate-200 dark:border-slate-600 rounded-lg p-4 bg-white/80 dark:bg-slate-800/80" data-surge>
-          <h3 className="font-semibold mb-2 text-slate-800 dark:text-slate-200">Quantidades</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Total por dia:</p>
+          <h3 className="font-semibold mb-2 text-slate-800 dark:text-slate-200">Quantities</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Total per day:</p>
           <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{totalKg.toFixed(1)} kg</p>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Por galinha:</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Per chicken:</p>
           <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{Math.round(perChicken)} g</p>
           <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
             <div className="bg-slate-50 dark:bg-slate-700 p-2 rounded">
-              <p className="text-slate-600 dark:text-slate-400">Por refeição</p>
+              <p className="text-slate-600 dark:text-slate-400">Per meal</p>
               <p className="font-semibold text-slate-900 dark:text-slate-100">{perMeal} g</p>
             </div>
             <div className="bg-slate-50 dark:bg-slate-700 p-2 rounded">
-              <p className="text-slate-600 dark:text-slate-400">Refeições/dia</p>
+              <p className="text-slate-600 dark:text-slate-400">Meals/day</p>
               <p className="font-semibold text-slate-900 dark:text-slate-100">{times.length}</p>
             </div>
           </div>
@@ -60,17 +60,17 @@ export default function Recommendations({ model }) {
 
       {/* calendário semanal (chips) */}
       <div className="mt-6 border border-slate-200 dark:border-slate-600 rounded-lg p-4 bg-white/80 dark:bg-slate-800/80" data-surge>
-        <h3 className="font-semibold mb-2 text-slate-800 dark:text-slate-200">Calendário Semanal</h3>
+        <h3 className="font-semibold mb-2 text-slate-800 dark:text-slate-200">Weekly Calendar</h3>
         <div className="grid md:grid-cols-7 gap-3" id="weekCalendar">
-          {["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"].map((d) => (
+          {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d) => (
             <div key={d} className="border border-slate-200 dark:border-slate-600 rounded-lg p-3 bg-white dark:bg-slate-700">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-slate-900 dark:text-slate-100">{d}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">{times.length}x/dia</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{times.length}x/day</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {times.map((t) => (
-                  <span key={d+t} className="chip">{t} • {perMeal} g/gal</span>
+                  <span key={d+t} className="chip">{t} • {perMeal} g/chicken</span>
                 ))}
               </div>
             </div>

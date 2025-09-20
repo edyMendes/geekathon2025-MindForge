@@ -19,9 +19,9 @@ export default function Nav({ active, onChange }) {
 
   return (
     <div className="flex flex-wrap gap-3 mb-8">
-      <Item id="dashboard" icon={Layers} label="Grupos & Operação" />
-      <Item id="config" icon={Settings} label="Ferramentas & Configuração" />
-      <Item id="reports" icon={BarChart2} label="Relatórios" />
+      <Item id="dashboard" icon={Layers} label="Groups & Operations" />
+      <Item id="config" icon={Settings} label="Tools & Settings" />
+      <Item id="reports" icon={BarChart2} label="Reports" />
     </div>
   );
 }

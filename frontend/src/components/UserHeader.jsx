@@ -47,7 +47,7 @@ export default function UserHeader({ user, onLogout, onNavigate }) {
       <button
         onClick={toggleTheme}
         className="p-2 rounded-lg bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm transition-all duration-200"
-        title={isDark ? "Modo claro" : "Modo escuro"}
+        title={isDark ? "Light mode" : "Dark mode"}
       >
         {isDark ? (
           <Sun className="w-4 h-4 text-yellow-500" />
@@ -70,7 +70,7 @@ export default function UserHeader({ user, onLogout, onNavigate }) {
         {/* User Info */}
         <div className="text-left hidden sm:block">
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-            {user?.name || "Usuário"}
+            {user?.name || "User"}
           </p>
         </div>
         
@@ -93,7 +93,7 @@ export default function UserHeader({ user, onLogout, onNavigate }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                    {user?.name || "Usuário"}
+                    {user?.name || "User"}
                   </p>
                   {user?.farmName && (
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
@@ -119,7 +119,7 @@ export default function UserHeader({ user, onLogout, onNavigate }) {
                 className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
               >
                 <Settings className="w-4 h-4" />
-                <span>Configurações</span>
+                <span>Settings</span>
               </button>
             </div>
 
@@ -130,7 +130,7 @@ export default function UserHeader({ user, onLogout, onNavigate }) {
                 className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                <span>Sair</span>
+                <span>Logout</span>
               </button>
             </div>
           </div>

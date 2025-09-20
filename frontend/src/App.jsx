@@ -6,7 +6,6 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Nav from "./components/Nav.jsx";
 import UserHeader from "./components/UserHeader.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-import Configuracoes from "./pages/Configuracoes.jsx";
 import Diseases from "./pages/Diseases.jsx";
 import Relatorios from "./pages/Relatorios.jsx";
 import Login from "./pages/Login.jsx";
@@ -158,7 +157,6 @@ function AppContent() {
         <Nav active={page} onChange={setPage} />
 
         {page === "dashboard" && <Dashboard />}
-        {page === "config" && <Configuracoes />}
         {page === "diseases" && <Diseases />}
         {page === "reports" && <Relatorios />}
       </div>

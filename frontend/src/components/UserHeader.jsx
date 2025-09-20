@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { User, LogOut, Settings, ChevronDown, Home, Sun, Moon } from "lucide-react";
+import { User, LogOut, ChevronDown, Home, Sun, Moon } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 
 export default function UserHeader({ user, onLogout, onNavigate }) {
@@ -114,13 +114,6 @@ export default function UserHeader({ user, onLogout, onNavigate }) {
                 <span>Dashboard</span>
               </button>
               
-              <button
-                onClick={() => handleNavigate("config")}
-                className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-              >
-                <Settings className="w-4 h-4" />
-                <span>Settings</span>
-              </button>
             </div>
 
             {/* Logout Button */}

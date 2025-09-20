@@ -21,15 +21,15 @@ export default function Relatorios() {
 
   return (
     <div className="card shadow-sm p-6" data-aos="fade-up">
-      <h2 className="text-2xl font-semibold text-slate-800 mb-4">Relatórios</h2>
+      <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-200 mb-4">Relatórios</h2>
       {profiles.length === 0 ? (
-        <p className="text-slate-500">Sem perfis ou registos.</p>
+        <p className="text-slate-500 dark:text-slate-400">Sem perfis ou registos.</p>
       ) : (
         <>
           <ul className="list-disc ml-6">
             {profiles.map((p) => {
               const g = loadProfile(p);
-              return <li key={p} className="mb-1">{p} — {g.quantity} aves, {(+g.weight||0).toFixed(2)}kg, idade {g.age} semanas</li>;
+              return <li key={p} className="mb-1 text-slate-700 dark:text-slate-300">{p} — {g.quantity} aves, {(+g.weight||0).toFixed(2)}kg, idade {g.age} semanas</li>;
             })}
           </ul>
           <button onClick={exportAll} className="btn-sec px-4 py-2 rounded mt-4">Exportar CSV (todos)</button>

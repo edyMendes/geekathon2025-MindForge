@@ -5,8 +5,8 @@ import { Percent, ShoppingCart, Cpu, Boxes } from "lucide-react";
 function Section({ title, icon: Icon, children }) {
   return (
     <div className="card shadow-sm p-6 card-hover" data-aos="fade-up">
-      <h3 className="text-xl font-semibold text-slate-800 mb-4 flex items-center">
-        <Icon className="mr-2 text-emerald-600" /> {title}
+      <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center">
+        <Icon className="mr-2 text-emerald-600 dark:text-emerald-400" /> {title}
       </h3>
       {children}
     </div>
@@ -84,9 +84,9 @@ export default function Configuracoes() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
       <Section title="Comparador de Rações" icon={Boxes}>
         <div className="grid md:grid-cols-3 gap-3 mb-3">
-          <input ref={nameRef} className="px-3 py-2 border rounded" placeholder="Marca" />
-          <input ref={priceRef} type="number" step="0.01" className="px-3 py-2 border rounded" placeholder="€ / kg" />
-          <input ref={protRef} type="number" step="0.1" className="px-3 py-2 border rounded" placeholder="Proteína %" />
+          <input ref={nameRef} className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="Marca" />
+          <input ref={priceRef} type="number" step="0.01" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="€ / kg" />
+          <input ref={protRef} type="number" step="0.1" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="Proteína %" />
         </div>
         <div className="flex gap-2 mb-4">
           <button onClick={addCmp} className="btn-sec px-4 py-2 rounded">Adicionar</button>
@@ -97,16 +97,16 @@ export default function Configuracoes() {
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="border-b">
-              <tr><th className="py-2">Marca</th><th>€/kg</th><th>Prot%</th><th>Score</th></tr>
+            <thead className="border-b dark:border-slate-600">
+              <tr><th className="py-2 text-slate-700 dark:text-slate-300">Marca</th><th className="text-slate-700 dark:text-slate-300">€/kg</th><th className="text-slate-700 dark:text-slate-300">Prot%</th><th className="text-slate-700 dark:text-slate-300">Score</th></tr>
             </thead>
             <tbody>
               {cmp.map((r, i) => (
-                <tr key={i} className="border-b">
-                  <td className="py-2">{r.name}</td>
-                  <td>{r.price.toFixed(3)}</td>
-                  <td>{r.prot.toFixed(1)}</td>
-                  <td>{(r.prot / r.price).toFixed(2)}</td>
+                <tr key={i} className="border-b dark:border-slate-600">
+                  <td className="py-2 text-slate-900 dark:text-slate-100">{r.name}</td>
+                  <td className="text-slate-700 dark:text-slate-300">{r.price.toFixed(3)}</td>
+                  <td className="text-slate-700 dark:text-slate-300">{r.prot.toFixed(1)}</td>
+                  <td className="text-slate-700 dark:text-slate-300">{(r.prot / r.price).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
@@ -116,39 +116,39 @@ export default function Configuracoes() {
 
       <Section title="Otimizador de Compras" icon={ShoppingCart}>
         <div className="grid md:grid-cols-4 gap-3 mb-4">
-          <input ref={dRef} type="number" min="1" className="px-3 py-2 border rounded" placeholder="Dias (ex: 30)" />
-          <input ref={sRef} type="number" step="0.01" className="px-3 py-2 border rounded" placeholder="Estoque (kg)" />
-          <input ref={cRef} type="number" step="0.01" className="px-3 py-2 border rounded" placeholder="Consumo/dia (kg)" />
-          <input ref={bagRef} type="number" step="0.01" className="px-3 py-2 border rounded" placeholder="Saco (kg)" />
+          <input ref={dRef} type="number" min="1" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="Dias (ex: 30)" />
+          <input ref={sRef} type="number" step="0.01" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="Estoque (kg)" />
+          <input ref={cRef} type="number" step="0.01" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="Consumo/dia (kg)" />
+          <input ref={bagRef} type="number" step="0.01" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="Saco (kg)" />
         </div>
         <button onClick={calcPurch} className="btn-sec px-4 py-2 rounded">Calcular</button>
       </Section>
 
       <Section title="Calculadora de Descontos" icon={Percent}>
         <div className="grid md:grid-cols-4 gap-3 mb-4">
-          <input ref={pRef} type="number" step="0.01" className="px-3 py-2 border rounded" placeholder="Preço normal (€)" />
-          <input ref={pctRef} type="number" step="0.1" className="px-3 py-2 border rounded" placeholder="Desconto %" />
-          <input ref={bRef} type="number" step="0.01" className="px-3 py-2 border rounded" placeholder="Peso saco (kg)" />
-          <input ref={qRef} type="number" step="1" className="px-3 py-2 border rounded" placeholder="Qtd sacos" />
+          <input ref={pRef} type="number" step="0.01" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="Preço normal (€)" />
+          <input ref={pctRef} type="number" step="0.1" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="Desconto %" />
+          <input ref={bRef} type="number" step="0.01" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="Peso saco (kg)" />
+          <input ref={qRef} type="number" step="1" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="Qtd sacos" />
         </div>
         <button onClick={calcDisc} className="btn-sec px-4 py-2 rounded">Calcular</button>
       </Section>
 
       <Section title="Misturador de Rações (2 fontes)" icon={Cpu}>
         <div className="grid md:grid-cols-5 gap-3 mb-2">
-          <input ref={tRef} type="number" step="0.1" className="px-3 py-2 border rounded" placeholder="Proteína alvo %" />
-          <input ref={apRef} type="number" step="0.1" className="px-3 py-2 border rounded" placeholder="A Prot%" />
-          <input ref={acRef} type="number" step="0.01" className="px-3 py-2 border rounded" placeholder="A €/kg" />
-          <input ref={bpRef} type="number" step="0.1" className="px-3 py-2 border rounded" placeholder="B Prot%" />
-          <input ref={bcRef} type="number" step="0.01" className="px-3 py-2 border rounded" placeholder="B €/kg" />
+          <input ref={tRef} type="number" step="0.1" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="Proteína alvo %" />
+          <input ref={apRef} type="number" step="0.1" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="A Prot%" />
+          <input ref={acRef} type="number" step="0.01" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="A €/kg" />
+          <input ref={bpRef} type="number" step="0.1" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="B Prot%" />
+          <input ref={bcRef} type="number" step="0.01" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="B €/kg" />
         </div>
         <button onClick={calcMix} className="btn-sec px-4 py-2 rounded mb-2">Calcular mistura ótima</button>
         {mxOut === null ? null : mxOut ? (
-          <div className="p-3 bg-emerald-50 rounded text-sm">
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded text-sm text-slate-800 dark:text-slate-200">
             Mistura: <b>{mxOut.a}%</b> A + <b>{mxOut.b}%</b> B • Prot <b>{mxOut.prot.toFixed(2)}%</b> • Custo <b>{mxOut.cost.toFixed(3)} €/kg</b>
           </div>
         ) : (
-          <div className="p-3 bg-rose-50 rounded text-sm">Sem combinação ±0.2%.</div>
+          <div className="p-3 bg-rose-50 dark:bg-rose-900/20 rounded text-sm text-slate-800 dark:text-slate-200">Sem combinação ±0.2%.</div>
         )}
       </Section>
     </div>

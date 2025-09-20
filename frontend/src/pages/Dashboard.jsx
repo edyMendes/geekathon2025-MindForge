@@ -132,12 +132,12 @@ export default function Dashboard() {
 
       {/* DASHBOARD GRUPOS */}
       <div className="mt-12 card shadow-sm p-6" data-aos="fade-up">
-        <h2 className="text-2xl font-semibold text-slate-800 mb-4 flex items-center">
+        <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center">
           Grupos Ativos
         </h2>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="text-left text-slate-500 border-b">
+            <thead className="text-left text-slate-500 dark:text-slate-400 border-b dark:border-slate-600">
               <tr>
                 <th className="py-2">Grupo</th>
                 <th className="py-2">Aves</th>
@@ -150,20 +150,20 @@ export default function Dashboard() {
             </thead>
             <tbody>
               {rows.length === 0 && (
-                <tr><td colSpan="7" className="py-6 text-center text-slate-400">Sem grupos. Salva um perfil.</td></tr>
+                <tr><td colSpan="7" className="py-6 text-center text-slate-400 dark:text-slate-500">Sem grupos. Salva um perfil.</td></tr>
               )}
               {rows.map((r) => (
-                <tr key={r.name} className="border-b">
-                  <td className="py-2 font-medium">{r.name}</td>
-                  <td>{r.g.quantity || "—"}</td>
-                  <td>{(+r.g.weight || 0).toFixed(2)} kg</td>
-                  <td>{r.totalKg.toFixed(2)} kg</td>
-                  <td>{r.costDay.toFixed(2)} €</td>
-                  <td>{r.laying}</td>
+                <tr key={r.name} className="border-b dark:border-slate-600">
+                  <td className="py-2 font-medium text-slate-900 dark:text-slate-100">{r.name}</td>
+                  <td className="text-slate-700 dark:text-slate-300">{r.g.quantity || "—"}</td>
+                  <td className="text-slate-700 dark:text-slate-300">{(+r.g.weight || 0).toFixed(2)} kg</td>
+                  <td className="text-slate-700 dark:text-slate-300">{r.totalKg.toFixed(2)} kg</td>
+                  <td className="text-slate-700 dark:text-slate-300">{r.costDay.toFixed(2)} €</td>
+                  <td className="text-slate-700 dark:text-slate-300">{r.laying}</td>
                   <td className="text-right space-x-3">
-                    <button className="text-emerald-700 underline" onClick={() => openGroup(r.name)}>Abrir</button>
-                    <button className="text-slate-700 underline" onClick={() => duplicateGroup(r.name)}>Duplicar</button>
-                    <button className="text-rose-700 underline" onClick={() => archiveGroup(r.name)}>Arquivar</button>
+                    <button className="text-emerald-700 dark:text-emerald-400 underline hover:text-emerald-600 dark:hover:text-emerald-300" onClick={() => openGroup(r.name)}>Abrir</button>
+                    <button className="text-slate-700 dark:text-slate-300 underline hover:text-slate-600 dark:hover:text-slate-200" onClick={() => duplicateGroup(r.name)}>Duplicar</button>
+                    <button className="text-rose-700 dark:text-rose-400 underline hover:text-rose-600 dark:hover:text-rose-300" onClick={() => archiveGroup(r.name)}>Arquivar</button>
                   </td>
                 </tr>
               ))}
@@ -175,15 +175,15 @@ export default function Dashboard() {
       {/* TRACKING + CHARTS */}
       <div className="mt-12 card shadow-sm p-6" data-aos="fade-up">
         <div className="overflow-x-auto">
-          <h3 className="text-lg font-medium text-slate-800 mb-4 flex items-center">
+          <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200 mb-4 flex items-center">
             <TrendingUp className="mr-2" /> Registos do Grupo & Desempenho
           </h3>
 
           <div className="grid md:grid-cols-4 gap-3 mb-3">
-            <input ref={dateRef} type="date" className="px-3 py-2 border rounded-lg" defaultValue={new Date().toISOString().slice(0,10)} />
-            <input ref={weightRef} type="number" step="0.01" placeholder="Peso médio (kg)" className="px-3 py-2 border rounded-lg" />
-            <input ref={eggsRef} type="number" step="1" placeholder="Ovos do dia" className="px-3 py-2 border rounded-lg" />
-            <input ref={feedRef} type="number" step="0.01" placeholder="Ração consumida (kg)" className="px-3 py-2 border rounded-lg" />
+            <input ref={dateRef} type="date" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" defaultValue={new Date().toISOString().slice(0,10)} />
+            <input ref={weightRef} type="number" step="0.01" placeholder="Peso médio (kg)" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" />
+            <input ref={eggsRef} type="number" step="1" placeholder="Ovos do dia" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" />
+            <input ref={feedRef} type="number" step="0.01" placeholder="Ração consumida (kg)" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" />
           </div>
           <div className="flex gap-3 mb-4">
             <button onClick={addRecord} className="btn-sec px-4 py-2 rounded-lg">Adicionar Registo</button>
@@ -192,11 +192,11 @@ export default function Dashboard() {
 
           <div className="grid md:grid-cols-2 gap-6">
             <div className="card p-4 h-64">
-              <h4 className="font-semibold mb-2">Curva de Crescimento (kg)</h4>
+              <h4 className="font-semibold mb-2 text-slate-800 dark:text-slate-200">Curva de Crescimento (kg)</h4>
               <canvas ref={wCanvas} height="180"></canvas>
             </div>
             <div className="card p-4 h-64">
-              <h4 className="font-semibold mb-2">Produção & Consumo</h4>
+              <h4 className="font-semibold mb-2 text-slate-800 dark:text-slate-200">Produção & Consumo</h4>
               <canvas ref={eCanvas} height="180"></canvas>
             </div>
           </div>

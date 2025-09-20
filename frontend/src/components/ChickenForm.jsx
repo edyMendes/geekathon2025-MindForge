@@ -1,6 +1,6 @@
 import { Cpu, Save, Folder } from "lucide-react";
 import { useState } from "react";
-import { preciseFeedAmount, optimalFeedingTimes } from "../utils/calculate.js";
+import { preciseFeedAmount, optimalFeedingTimes, calculateSeasonalFeedAmount, getAdditionalFeedRecommendations } from "../utils/calculate.js";
 import { saveProfile, loadProfile, listProfiles } from "../hooks/useSettings.js";
 
 export default function ChickenForm({ onCalculated, onLoaded }) {
@@ -31,16 +31,26 @@ export default function ChickenForm({ onCalculated, onLoaded }) {
     const iAge = parseInt(age), iQty = parseInt(quantity), fW = parseFloat(weight);
     if (!iAge || !iQty || !fW) return alert("Please fill in age, weight and quantity with valid values.");
 
-    const gPerChicken = preciseFeedAmount(breed, iAge, fW, environment, season, stressLevel, molting, purpose);
-    const totalKg = (gPerChicken * iQty) / 1000;
+    // Calculate seasonal feed amount with adjustments
+    const seasonalFeedData = calculateSeasonalFeedAmount(breed, iAge, fW, environment, season, stressLevel, molting, purpose);
+    
+    // Get additional recommendations
+    const recommendations = getAdditionalFeedRecommendations(breed, iAge, environment, season, purpose);
 
+    const totalKg = (seasonalFeedData.adjustedAmount * iQty) / 1000;
     const times = optimalFeedingTimes(iAge, season, environment, stressLevel, purpose);
 
     onCalculated({
       form,
-      perChicken: gPerChicken,
+      perChicken: seasonalFeedData.adjustedAmount,
+      basePerChicken: seasonalFeedData.baseAmount,
       totalKg,
       times,
+      seasonalAdjustments: seasonalFeedData.seasonalAdjustments,
+      recommendations: recommendations,
+      energyIncrease: seasonalFeedData.energyIncrease,
+      proteinIncrease: seasonalFeedData.proteinIncrease,
+      calciumIncrease: seasonalFeedData.calciumIncrease
     });
   };
 

@@ -597,6 +597,142 @@ Focus on providing practical, actionable recovery recommendations that address t
         
         return recommendation
     
+    def _create_disease_weekly_recipe_prompt(self, disease_recovery: Dict[str, Any], disease_info: ChickenDiseaseInfo) -> str:
+        """Create prompt for generating weekly feed recipes based on disease recovery recommendations"""
+        recovery_feed = disease_recovery.get("recovery_feed_composition", {})
+        disease_treatment = disease_recovery.get("disease_treatment", {})
+        feeding_schedule = disease_recovery.get("feeding_schedule", [])
+        
+        return f"""You are a poultry veterinarian and nutrition expert specializing in disease recovery. Create a detailed weekly feed recipe calendar for the following diseased chicken group based on their recovery needs:
+
+Chicken Details:
+- Number of birds: {disease_info.count}
+- Breed: {disease_info.breed}
+- Average weight: {disease_info.average_weight_kg} kg per bird
+- Age: {disease_info.age_weeks} weeks
+- Disease: {disease_info.disease}
+
+Recovery Feed Composition:
+- Protein: {recovery_feed.get('crude_protein_percent', 'N/A')}%
+- Energy: {recovery_feed.get('metabolizable_energy_kcal_per_kg', 'N/A')} kcal/kg
+- Calcium: {recovery_feed.get('calcium_percent', 'N/A')}%
+- Phosphorus: {recovery_feed.get('phosphorus_percent', 'N/A')}%
+
+Daily Feed Amounts:
+- Per bird daily: {disease_recovery.get('daily_feed_amount_per_bird_kg', 0)} kg
+- Total daily: {disease_recovery.get('total_daily_feed_kg', 0)} kg
+
+Treatment Approach: {disease_treatment.get('treatment_approach', 'General recovery support')}
+Feeding Schedule: {feeding_schedule}
+
+Create a comprehensive weekly recovery feed recipe calendar. Return ONLY valid JSON without markdown formatting:
+
+{{
+    "weekly_calendar": {{
+        "week_start_date": "2024-01-15",
+        "total_weekly_kg": <total for 7 days>,
+        "daily_recipes": [
+            {{
+                "day": "Monday",
+                "feeding_recipes": [
+                    {{
+                        "feeding_time": "7:00 AM",
+                        "recipe": "Corn 35%, Soybean meal 30%, Wheat 15%, Fish meal 8%, Calcium carbonate 6%, Salt 2%, Vitamins 4%",
+                        "quantity_kg": <amount for this feeding>,
+                        "quantity_grams": <amount for this feeding in grams>,
+                        "nutritional_focus": "High protein for tissue repair and immune support",
+                        "recovery_benefits": "Supports healing and immune function",
+                        "ingredient_breakdown": [
+                            {{"ingredient_name": "Corn", "percentage": 35.0, "grams": <calculated>, "nutritional_contribution": "Energy for recovery"}},
+                            {{"ingredient_name": "Soybean meal", "percentage": 30.0, "grams": <calculated>, "nutritional_contribution": "High-quality protein for healing"}},
+                            {{"ingredient_name": "Wheat", "percentage": 15.0, "grams": <calculated>, "nutritional_contribution": "Additional energy"}},
+                            {{"ingredient_name": "Fish meal", "percentage": 8.0, "grams": <calculated>, "nutritional_contribution": "Essential amino acids"}},
+                            {{"ingredient_name": "Calcium carbonate", "percentage": 6.0, "grams": <calculated>, "nutritional_contribution": "Bone health"}},
+                            {{"ingredient_name": "Salt", "percentage": 2.0, "grams": <calculated>, "nutritional_contribution": "Electrolyte balance"}},
+                            {{"ingredient_name": "Vitamins", "percentage": 4.0, "grams": <calculated>, "nutritional_contribution": "Immune support"}}
+                        ]
+                    }},
+                    {{
+                        "feeding_time": "4:00 PM",
+                        "recipe": "Barley 30%, Fish meal 25%, Oats 20%, Corn 15%, Oyster shell 5%, Salt 2%, Vitamins 3%",
+                        "quantity_kg": <amount for this feeding>,
+                        "quantity_grams": <amount for this feeding in grams>,
+                        "nutritional_focus": "Enhanced protein and minerals for evening recovery",
+                        "recovery_benefits": "Supports overnight healing processes",
+                        "ingredient_breakdown": [
+                            {{"ingredient_name": "Barley", "percentage": 30.0, "grams": <calculated>, "nutritional_contribution": "Sustained energy"}},
+                            {{"ingredient_name": "Fish meal", "percentage": 25.0, "grams": <calculated>, "nutritional_contribution": "High protein for recovery"}},
+                            {{"ingredient_name": "Oats", "percentage": 20.0, "grams": <calculated>, "nutritional_contribution": "Fiber and energy"}},
+                            {{"ingredient_name": "Corn", "percentage": 15.0, "grams": <calculated>, "nutritional_contribution": "Carbohydrates"}},
+                            {{"ingredient_name": "Oyster shell", "percentage": 5.0, "grams": <calculated>, "nutritional_contribution": "Calcium for bone health"}},
+                            {{"ingredient_name": "Salt", "percentage": 2.0, "grams": <calculated>, "nutritional_contribution": "Electrolytes"}},
+                            {{"ingredient_name": "Vitamins", "percentage": 3.0, "grams": <calculated>, "nutritional_contribution": "Essential nutrients"}}
+                        ]
+                    }}
+                ],
+                "total_daily_kg": <daily amount>,
+                "recovery_notes": "High-protein diet for {disease_info.disease} recovery",
+                "special_considerations": ["Monitor appetite closely", "Ensure clean water access", "Watch for improvement signs"]
+            }}
+        ],
+        "weekly_recovery_goals": ["Support healing from {disease_info.disease}", "Boost immune function", "Maintain nutritional status"],
+        "preparation_notes": ["Mix ingredients thoroughly", "Store in cool, dry place", "Use within 15 days for freshness"],
+        "disease_specific_notes": ["Monitor for {disease_info.disease} symptoms", "Adjust feeding if appetite changes", "Consult veterinarian if no improvement"]
+    }}
+}}
+
+CRITICAL CALCULATION REQUIREMENTS:
+- The total_daily_feed_kg from disease recovery is: {disease_recovery.get('total_daily_feed_kg', 0)} kg
+- Each day's total_daily_kg MUST equal this exact amount
+- The sum of all feeding quantities in a day MUST equal total_daily_kg
+- All ingredient percentages in each feeding MUST add up to 100%
+- All ingredient grams in each feeding MUST add up to the feeding's quantity_grams
+- Convert kg to grams: 1 kg = 1000 grams
+
+Disease-specific recipe guidelines:
+1. **{disease_info.disease}**: Focus on ingredients that support recovery from this specific disease
+2. Use easily digestible ingredients for sick birds
+3. Increase protein content for tissue repair and immune support
+4. Include immune-boosting nutrients (vitamins, minerals, probiotics)
+5. Ensure high palatability to encourage eating in sick birds
+6. Consider the disease's impact on appetite and digestion
+7. Vary recipes daily while maintaining recovery focus
+8. Include ingredients that support the specific body systems affected by the disease
+9. Ensure recipes are gentle on the digestive system
+10. Provide adequate energy for healing processes
+
+CALCULATION VALIDATION:
+- For each feeding: sum of all ingredient grams = quantity_grams
+- For each feeding: sum of all ingredient percentages = 100%
+- For each day: sum of all feeding quantities = total_daily_kg = {disease_recovery.get('total_daily_feed_kg', 0)} kg
+- Use realistic ingredient percentages (typically 5-50% per ingredient)
+- Provide detailed nutritional contribution for each ingredient
+
+Create 7 days (Monday-Sunday) with varied, recovery-focused recipes that support healing from {disease_info.disease} while maintaining nutritional balance. Ensure all calculations are mathematically accurate and quantities add up correctly."""
+
+    def generate_disease_weekly_recipes(self, disease_info: ChickenDiseaseInfo) -> Dict[str, Any]:
+        """Generate weekly feed recipes for disease recovery"""
+        
+        # First get the disease recovery recommendation
+        disease_recovery = self.generate_disease_recovery_recommendation(disease_info)
+        
+        logger.info(f"Generating weekly recovery recipes for {disease_info.count} {disease_info.breed} chickens with {disease_info.disease}")
+        
+        # Create specific prompt for weekly recovery recipes
+        prompt = self._create_disease_weekly_recipe_prompt(disease_recovery, disease_info)
+        
+        # Call Nova Pro for weekly recovery recipes
+        recipe_result = self._call_nova_pro(prompt)
+        
+        # Combine results with disease recovery context
+        response = {
+            "weekly_calendar": recipe_result.get("weekly_calendar", {}),
+            "disease_recovery": disease_recovery,
+            "request_info": disease_recovery.get("request_info", {})
+        }
+        
+        return response
+    
     def validate_credentials(self) -> bool:
         """Validate current AWS credentials"""
         return self.auth_service.validate_credentials()

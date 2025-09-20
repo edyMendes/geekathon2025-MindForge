@@ -255,3 +255,35 @@ async def generate_disease_recovery_recommendation(disease_info: ChickenDiseaseI
     except Exception as e:
         logger.error(f"Unexpected error in generate_disease_recovery_recommendation: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.post("/disease-weekly-recipes", response_model=Dict[str, Any])
+async def generate_disease_weekly_recipes(disease_info: ChickenDiseaseInfo):
+    """
+    Generate weekly feed recipes for disease recovery
+    
+    This endpoint provides comprehensive weekly recovery recipes including:
+    - **weekly_calendar**: Complete 7-day recovery recipe calendar with daily feeding recipes
+    - **disease_recovery**: Original disease recovery recommendations and feed composition
+    - **request_info**: Processing metadata and chicken details
+    
+    Input parameters:
+    - **count**: Number of chickens (1-10000)
+    - **breed**: Breed of chickens (e.g., 'laying hen')
+    - **average_weight_kg**: Average weight in kilograms (0.1-10.0)
+    - **age_weeks**: Age in weeks (1-200)
+    - **disease**: Disease affecting the chickens (respiratory_infection, coccidiosis, mites_lice, egg_binding, marek_disease, newcastle_disease)
+    """
+    try:
+        logger.info(f"Processing disease weekly recipes request for {disease_info.count} {disease_info.breed} chickens with {disease_info.disease}")
+        
+        # Generate weekly recovery recipes
+        recipes = bedrock_service.generate_disease_weekly_recipes(disease_info)
+        
+        logger.info("Disease weekly recipes generated successfully")
+        return recipes
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in generate_disease_weekly_recipes: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

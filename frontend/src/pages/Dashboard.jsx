@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { listProfiles, loadProfile, removeProfile, saveProfile, addHistory, getHistory } from "../hooks/useSettings.js";
 import ChickenForm from "../components/ChickenForm.jsx";
 import Recommendations from "../components/Recommendations.jsx";
+import WeeklyCalendar from "../components/WeeklyCalendar.jsx";
 import { preciseFeedAmount } from "../utils/calculate.js";
 import { TrendingUp } from "lucide-react";
 import Chart from "chart.js/auto";
@@ -22,7 +23,7 @@ export default function Dashboard() {
     const keys = listProfiles();
     const mapped = keys.map((name) => {
       const g = loadProfile(name);
-      const amt = preciseFeedAmount(g.breed, +g.age, +g.weight, g.health, g.environment, g.season, g.stressLevel, +g.lightHours || 14, g.molting);
+      const amt = preciseFeedAmount(g.breed, +g.age, +g.weight, g.environment, g.season, g.stressLevel, g.molting, g.purpose || "eggs");
       const totalKg = (amt * (+g.quantity || 0)) / 1000;
       const costDay = totalKg * (+g.feedCost || 0);
       const laying = (+g.age >= 18) ? `≈ ${Math.max(30, 80 - (+g.age - 18) + (g.breed === "leghorn" ? 10 : 0))}%` : "—";
@@ -128,6 +129,11 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ChickenForm onCalculated={onCalculated} onLoaded={(n)=>{ setCurrentGroup(n); }} />
         <Recommendations model={model} />
+      </div>
+
+      {/* Weekly Calendar */}
+      <div className="mt-12">
+        <WeeklyCalendar model={model} />
       </div>
 
       {/* DASHBOARD GRUPOS */}

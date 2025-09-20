@@ -1,4 +1,4 @@
-import { Layers, Settings, BarChart2 } from "lucide-react";
+import { Layers, Settings, BarChart2, AlertTriangle } from "lucide-react";
 
 export default function Nav({ active, onChange }) {
   const Item = ({ id, icon: Icon, label }) => (
@@ -21,6 +21,7 @@ export default function Nav({ active, onChange }) {
     <div className="flex flex-wrap gap-3 mb-8">
       <Item id="dashboard" icon={Layers} label="Groups & Operations" />
       <Item id="config" icon={Settings} label="Tools & Settings" />
+      <Item id="diseases" icon={AlertTriangle} label="Diseases" />
       <Item id="reports" icon={BarChart2} label="Reports" />
     </div>
   );

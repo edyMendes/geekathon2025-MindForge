@@ -58,25 +58,6 @@ export default function Recommendations({ model }) {
         </div>
       </div>
 
-      {/* calendário semanal (chips) */}
-      <div className="mt-6 border border-slate-200 dark:border-slate-600 rounded-lg p-4 bg-white/80 dark:bg-slate-800/80" data-surge>
-        <h3 className="font-semibold mb-2 text-slate-800 dark:text-slate-200">Weekly Calendar</h3>
-        <div className="grid md:grid-cols-7 gap-3" id="weekCalendar">
-          {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d) => (
-            <div key={d} className="border border-slate-200 dark:border-slate-600 rounded-lg p-3 bg-white dark:bg-slate-700">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-slate-900 dark:text-slate-100">{d}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">{times.length}x/day</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {times.map((t) => (
-                  <span key={d+t} className="chip">{t} • {perMeal} g/chicken</span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

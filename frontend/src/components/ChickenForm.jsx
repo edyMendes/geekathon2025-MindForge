@@ -1,10 +1,9 @@
 
-import { Cpu, Save, Folder } from "lucide-react";
+import { Cpu, Save } from "lucide-react";
 import { useState, useEffect } from "react";
 import { preciseFeedAmount, optimalFeedingTimes, calculateSeasonalFeedAmount, getAdditionalFeedRecommendations } from "../utils/calculate.js";
-import { saveProfile, loadProfile, listProfiles } from "../hooks/useSettings.js";
+import { saveProfile } from "../hooks/useSettings.js";
 import ProfileNameModal from "./ProfileNameModal.jsx";
-import ConfirmModal from "./ConfirmModal.jsx";
 
 
 export default function ChickenForm({ onCalculated, onLoaded, loadProfileData }) {
@@ -28,10 +27,6 @@ export default function ChickenForm({ onCalculated, onLoaded, loadProfileData })
 
   // Modal states
   const [showSaveModal, setShowSaveModal] = useState(false);
-  const [showLoadModal, setShowLoadModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState(null);
-  const [profiles, setProfiles] = useState([]);
 
   const set = (k, v) => setForm((s) => ({ ...s, [k]: v }));
 
@@ -72,11 +67,6 @@ export default function ChickenForm({ onCalculated, onLoaded, loadProfileData })
     });
   };
 
-  // Load profiles on component mount
-  useEffect(() => {
-    setProfiles(listProfiles());
-  }, []);
-
   const handleSave = async (profileName) => {
     const { age, weight, quantity } = form;
     if (!parseInt(age) || !parseInt(quantity) || !parseFloat(weight)) {
@@ -86,26 +76,12 @@ export default function ChickenForm({ onCalculated, onLoaded, loadProfileData })
     
     try {
       await saveProfile(profileName, { ...form, age: +form.age, weight: +form.weight, quantity: +form.quantity });
-      setProfiles(listProfiles());
       onLoaded?.(profileName);
       setShowSaveModal(false);
     } catch (error) {
       console.error('Error saving profile:', error);
       alert("Error saving profile. Please try again.");
     }
-  };
-
-  const handleLoad = (profileName) => {
-    const data = loadProfile(profileName);
-    setForm(data);
-    onLoaded?.(profileName);
-    setShowLoadModal(false);
-  };
-
-  const handleDelete = (profileName) => {
-    // This would need to be implemented in useSettings.js
-    // For now, just close the modal
-    setShowDeleteModal(false);
   };
 
   const openSaveModal = () => {
@@ -115,16 +91,6 @@ export default function ChickenForm({ onCalculated, onLoaded, loadProfileData })
       return;
     }
     setShowSaveModal(true);
-  };
-
-  const openLoadModal = () => {
-    const availableProfiles = listProfiles();
-    if (!availableProfiles.length) {
-      alert("No profiles available.");
-      return;
-    }
-    setProfiles(availableProfiles);
-    setShowLoadModal(true);
   };
 
 
@@ -190,15 +156,12 @@ export default function ChickenForm({ onCalculated, onLoaded, loadProfileData })
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-3 pt-2">
+        <div className="grid sm:grid-cols-2 gap-3 pt-2">
           <button className="btn-primary w-full py-3 rounded-lg inline-flex items-center justify-center">
             <Cpu className="mr-2" size={18}/> Calculate Recommendations
           </button>
           <button type="button" onClick={openSaveModal} className="btn-sec w-full py-3 rounded-lg inline-flex items-center justify-center">
             <Save className="mr-2" size={18}/> Save Profile
-          </button>
-          <button type="button" onClick={openLoadModal} className="btn-sec w-full py-3 rounded-lg inline-flex items-center justify-center">
-            <Folder className="mr-2" size={18}/> Load Profile
           </button>
         </div>
       </form>
@@ -210,30 +173,8 @@ export default function ChickenForm({ onCalculated, onLoaded, loadProfileData })
         onSave={handleSave}
         title="Save Chicken Profile"
         placeholder="Enter profile name..."
-        existingProfiles={profiles}
+        existingProfiles={[]}
         type="chicken"
-      />
-
-      <ProfileNameModal
-        isOpen={showLoadModal}
-        onClose={() => setShowLoadModal(false)}
-        onSave={handleLoad}
-        title="Load Chicken Profile"
-        placeholder="Select or enter profile name..."
-        existingProfiles={profiles}
-        type="chicken"
-      />
-
-      <ConfirmModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        onConfirm={() => handleDelete(selectedProfile)}
-        title="Delete Profile"
-        message="Are you sure you want to delete this profile?"
-        confirmText="Delete"
-        type="danger"
-        destructive={true}
-        itemName={selectedProfile}
       />
     </div>
   );

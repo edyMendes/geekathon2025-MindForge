@@ -1,7 +1,11 @@
-import { useEffect } from "react";
-import { Calendar, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Calendar, Clock, Info } from "lucide-react";
+import MealDetailsModal from "./MealDetailsModal.jsx";
 
 export default function WeeklyCalendar({ model }) {
+  const [selectedMeal, setSelectedMeal] = useState(null);
+  const [showMealModal, setShowMealModal] = useState(false);
+
   // Obter o dia atual da semana (0 = Domingo, 1 = Segunda, etc.)
   const getCurrentDayOfWeek = () => {
     return new Date().getDay();
@@ -11,6 +15,21 @@ export default function WeeklyCalendar({ model }) {
   const getCurrentDayName = () => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     return days[getCurrentDayOfWeek()];
+  };
+
+  const handleMealClick = (time, dayOfWeek) => {
+    if (!model) return;
+    
+    const perMeal = Math.round(model.perChicken / model.times.length);
+    const totalAmount = perMeal * model.form.quantity;
+    
+    setSelectedMeal({
+      time,
+      dayOfWeek,
+      amountPerChicken: perMeal,
+      totalAmount
+    });
+    setShowMealModal(true);
   };
 
   // Obter a hora atual formatada
@@ -133,19 +152,25 @@ export default function WeeklyCalendar({ model }) {
                     {/* Horários de alimentação */}
                     <div className="space-y-1">
                       {times.map((time, index) => (
-                        <div
+                        <button
                           key={`${day.name}-${time}-${index}`}
-                          className={`text-xs px-2 py-1 rounded ${
+                          onClick={() => handleMealClick(time, day.name)}
+                          className={`w-full text-left text-xs px-2 py-1 rounded transition-all duration-200 hover:scale-105 hover:shadow-md ${
                             isCurrentDay
-                              ? 'bg-white/20 text-white'
-                              : 'bg-slate-100 dark:bg-slate-600 text-slate-700 dark:text-slate-300'
+                              ? 'bg-white/20 text-white hover:bg-white/30'
+                              : 'bg-slate-100 dark:bg-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-500'
                           }`}
                         >
-                          <div className="font-medium">{time}</div>
-                          <div className="text-xs opacity-75">
-                            {perMeal}g/chicken
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{time}</div>
+                              <div className="text-xs opacity-75">
+                                {perMeal}g/chicken
+                              </div>
+                            </div>
+                            <Info className="w-3 h-3 opacity-60" />
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -185,6 +210,14 @@ export default function WeeklyCalendar({ model }) {
           </div>
         </>
       )}
+
+      {/* Meal Details Modal */}
+      <MealDetailsModal
+        isOpen={showMealModal}
+        onClose={() => setShowMealModal(false)}
+        mealData={selectedMeal}
+        model={model}
+      />
     </div>
   );
 }

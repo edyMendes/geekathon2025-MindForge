@@ -220,9 +220,8 @@ export default function Dashboard() {
                   <td className="text-slate-700 dark:text-slate-300">{r.costDay.toFixed(2)} €</td>
                   <td className="text-slate-700 dark:text-slate-300">{r.laying}</td>
                   <td className="text-right space-x-3">
-                    <button className="text-emerald-700 dark:text-emerald-400 underline hover:text-emerald-600 dark:hover:text-emerald-300" onClick={() => openGroup(r.name)}>Open</button>
-                    <button className="text-slate-700 dark:text-slate-300 underline hover:text-slate-600 dark:hover:text-slate-200" onClick={() => duplicateGroup(r.name)}>Duplicate</button>
-                    <button className="text-rose-700 dark:text-rose-400 underline hover:text-rose-600 dark:hover:text-rose-300" onClick={() => archiveGroup(r.name)}>Archive</button>
+                    <button className="text-emerald-700 dark:text-emerald-400 underline hover:text-emerald-600 dark:hover:text-emerald-300" onClick={() => openGroup(r.name)}>Select</button>
+                    <button className="text-rose-700 dark:text-rose-400 underline hover:text-rose-600 dark:hover:text-rose-300" onClick={() => archiveGroup(r.name)}>Delete</button>
                   </td>
                 </tr>
               ))}

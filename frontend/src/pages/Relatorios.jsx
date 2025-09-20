@@ -1,34 +1,40 @@
-import React from 'react'
+import { listProfiles, getHistory, loadProfile } from "../hooks/useSettings.js";
 
 export default function Relatorios() {
+  const profiles = listProfiles();
+
+  const exportAll = () => {
+    if (!profiles.length) return alert("Sem perfis.");
+    let zipCsv = "";
+    profiles.forEach((p, idx) => {
+      const hist = getHistory(p);
+      zipCsv += `# ${p}\n`;
+      zipCsv += "date,weight_kg,eggs,feed_kg,feed_per_egg_kg\n";
+      hist.forEach((h) => zipCsv += `${h.date},${h.weight},${h.eggs},${h.feed},${h.eggs>0?(h.feed/h.eggs).toFixed(3):""}\n`);
+      if (idx < profiles.length - 1) zipCsv += "\n";
+    });
+    const blob = new Blob([zipCsv], { type: "text/plain;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "relatorios_todos.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">Relatórios</h2>
-      <p className="text-gray-600 mb-6">Gera e exporta resumos de consumo, custos e produção de ovos.</p>
-
-      <div className="grid md:grid-cols-3 gap-6">
-        <div className="border border-gray-200 rounded-lg p-4">
-          <h3 className="font-medium text-gray-800 mb-2">Resumo Diário</h3>
-          <ul className="text-sm text-gray-600 list-disc ml-4">
-            <li>Consumo de ração total</li>
-            <li>Água consumida</li>
-            <li>Produção de ovos</li>
+    <div className="card shadow-sm p-6" data-aos="fade-up">
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">Relatórios</h2>
+      {profiles.length === 0 ? (
+        <p className="text-slate-500">Sem perfis ou registos.</p>
+      ) : (
+        <>
+          <ul className="list-disc ml-6">
+            {profiles.map((p) => {
+              const g = loadProfile(p);
+              return <li key={p} className="mb-1">{p} — {g.quantity} aves, {(+g.weight||0).toFixed(2)}kg, idade {g.age} semanas</li>;
+            })}
           </ul>
-          <button className="mt-3 px-3 py-2 bg-gray-900 text-white rounded-lg text-sm">Exportar CSV</button>
-        </div>
-
-        <div className="border border-gray-200 rounded-lg p-4">
-          <h3 className="font-medium text-gray-800 mb-2">Custo Mensal</h3>
-          <p className="text-sm text-gray-600">Projeção de custos com base nos últimos 30 dias.</p>
-          <button className="mt-3 px-3 py-2 bg-gray-900 text-white rounded-lg text-sm">Exportar PDF</button>
-        </div>
-
-        <div className="border border-gray-200 rounded-lg p-4">
-          <h3 className="font-medium text-gray-800 mb-2">Eficiência Alimentar</h3>
-          <p className="text-sm text-gray-600">FCR médio e ração por ovo.</p>
-          <button className="mt-3 px-3 py-2 bg-gray-900 text-white rounded-lg text-sm">Exportar XLSX</button>
-        </div>
-      </div>
+          <button onClick={exportAll} className="btn-sec px-4 py-2 rounded mt-4">Exportar CSV (todos)</button>
+        </>
+      )}
     </div>
-  )
+  );
 }

@@ -19,9 +19,9 @@ class Settings:
     API_PORT: int = int(os.getenv("API_PORT", "8000"))
     
     # AWS Bedrock Configuration - Bearer Token approach
-    AWS_BEARER_TOKEN_BEDROCK: str = os.getenv("AWS_BEARER_TOKEN_BEDROCK", "")
-    AWS_REGION: str = os.getenv("AWS_REGION", "us-east-1")
-    BEDROCK_MODEL_ID: str = os.getenv("BEDROCK_MODEL_ID", "amazon.nova-pro-v1:0")
+    AWS_BEARER_TOKEN_BEDROCK: str = os.getenv("AWS_BEARER_TOKEN_BEDROCK")
+    AWS_REGION: str = os.getenv("AWS_REGION")
+    BEDROCK_MODEL_ID: str = os.getenv("BEDROCK_MODEL_ID")
     
     # Bedrock Configuration
     BEDROCK_CONFIG = {

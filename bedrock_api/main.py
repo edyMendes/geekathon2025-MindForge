@@ -47,8 +47,24 @@ async def lifespan(app: FastAPI):
         logger.warning("")
         logger.warning("⚡ Server will start but API calls will fail until credentials are set.")
     else:
-        logger.info("✅ Configuration looks good!")
-        logger.info("🚀 API is ready to receive requests")
+        logger.info("✅ Environment variables are set!")
+        
+        # Test actual AWS credentials
+        try:
+            from app.services.auth_service import AWSAuthService
+            auth_service = AWSAuthService()
+            if auth_service.validate_credentials():
+                logger.info("🚀 AWS credentials validated! API is ready to receive requests")
+            else:
+                logger.warning("⚠️  AWS credentials are invalid!")
+                logger.info(f"AWS_BEARER_TOKEN_BEDROCK: {settings.AWS_BEARER_TOKEN_BEDROCK}")
+                logger.info(f"AWS_REGION: {settings.AWS_REGION}")
+                logger.info(f"BEDROCK_MODEL_ID: {settings.BEDROCK_MODEL_ID}")
+                logger.warning("   Your bearer token might be expired or incorrect.")
+                logger.warning("   API will start but calls to Bedrock will fail.")
+        except Exception as e:
+            logger.warning(f"⚠️  Could not validate AWS credentials: {e}")
+            logger.warning("   API will start but calls to Bedrock might fail.")
     
     yield
     

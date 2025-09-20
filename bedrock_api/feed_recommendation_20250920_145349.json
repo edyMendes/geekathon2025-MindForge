@@ -1,0 +1,42 @@
+{
+  "feed_composition": {
+    "crude_protein_percent": 18,
+    "metabolizable_energy_kcal_per_kg": 2800,
+    "crude_fat_percent": 3.5,
+    "crude_fiber_percent": 3.5,
+    "calcium_percent": 3.5,
+    "phosphorus_percent": 0.45,
+    "lysine_percent": 0.9,
+    "methionine_percent": 0.45,
+    "vitamins": {
+      "vitamin_a_iu_per_kg": 10000,
+      "vitamin_d3_iu_per_kg": 2500,
+      "vitamin_e_iu_per_kg": 20
+    },
+    "minerals": {
+      "sodium_percent": 0.2,
+      "chloride_percent": 0.25,
+      "magnesium_percent": 0.05
+    }
+  },
+  "daily_feed_amount_per_bird_kg": 0.12,
+  "total_daily_feed_kg": 18,
+  "seasonal_adjustments": {
+    "energy_adjustment": "Increased energy requirement due to cooler autumn temperatures to maintain body heat.",
+    "protein_adjustment": "Slight increase in protein to support growth and feather development as birds approach laying age.",
+    "water_considerations": "Ensure access to clean, unfrozen water as temperatures drop, and monitor water intake to prevent dehydration."
+  },
+  "additional_recommendations": [
+    "Monitor bird health regularly for any signs of nutritional deficiencies or illnesses.",
+    "Provide adequate space and comfortable housing to reduce stress and promote healthy growth.",
+    "Consider adding prebiotics or probiotics to the feed to enhance gut health and nutrient absorption."
+  ],
+  "request_info": {
+    "processed_at": "2025-09-20T14:53:49.503418",
+    "chicken_count": 150,
+    "breed": "laying hen",
+    "average_weight_kg": 2.5,
+    "age_weeks": 10,
+    "season_used": "autumn"
+  }
+}

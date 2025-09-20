@@ -127,13 +127,27 @@ Consider the bird's age, weight, breed characteristics, and seasonal requirement
                 if generated_text:
                     return self._parse_response(generated_text)
                 else:
-                    return self._create_fallback_response("No response generated from model")
+                    raise HTTPException(
+                        status_code=500,
+                        detail="No response generated from Nova Pro model"
+                    )
             else:
-                return self._create_fallback_response("No content in model response")
+                raise HTTPException(
+                    status_code=500,
+                    detail="No content in Nova Pro model response"
+                )
             
+        except HTTPException:
+            raise
         except Exception as e:
-            logger.error(f"Error calling Nova Pro: {e}")
-            return self._create_fallback_response(f"Error calling model: {str(e)}")
+            error_msg = f"Error calling Nova Pro: {str(e)}"
+            logger.error(error_msg)
+            logger.error(f"Error type: {type(e).__name__}")
+            logger.error(f"Full error details: {repr(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error calling Nova Pro model: {str(e)}"
+            )
 
     def _parse_response(self, generated_text: str) -> Dict[str, Any]:
         """Parse JSON response from Nova Pro model"""
@@ -153,77 +167,11 @@ Consider the bird's age, weight, breed characteristics, and seasonal requirement
             logger.error(f"Failed to parse JSON from Nova Pro response: {e}")
             logger.error(f"Raw response: {generated_text}")
             
-            # Fallback: return a structured error response
-            return {
-                "error": "Failed to parse recommendation",
-                "raw_response": generated_text,
-                "feed_composition": {
-                    "crude_protein_percent": 0,
-                    "metabolizable_energy_kcal_per_kg": 0,
-                    "crude_fat_percent": 0,
-                    "crude_fiber_percent": 0,
-                    "calcium_percent": 0,
-                    "phosphorus_percent": 0,
-                    "lysine_percent": 0,
-                    "methionine_percent": 0,
-                    "vitamins": {
-                        "vitamin_a_iu_per_kg": 0,
-                        "vitamin_d3_iu_per_kg": 0,
-                        "vitamin_e_iu_per_kg": 0
-                    },
-                    "minerals": {
-                        "sodium_percent": 0,
-                        "chloride_percent": 0,
-                        "magnesium_percent": 0
-                    }
-                },
-                "daily_feed_amount_per_bird_kg": 0,
-                "total_daily_feed_kg": 0,
-                "seasonal_adjustments": {
-                    "energy_adjustment": "Error occurred",
-                    "protein_adjustment": "Error occurred",
-                    "water_considerations": "Error occurred"
-                },
-                "additional_recommendations": ["Please check the raw response for manual parsing"]
-            }
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to parse JSON response from Nova Pro model: {str(e)}. Raw response: {generated_text[:200]}..."
+            )
     
-    def _create_fallback_response(self, error_message: str) -> Dict[str, Any]:
-        """Create a fallback response when the model fails"""
-        return {
-            "error": error_message,
-            "feed_composition": {
-                "crude_protein_percent": 18.0,
-                "metabolizable_energy_kcal_per_kg": 2800,
-                "crude_fat_percent": 4.0,
-                "crude_fiber_percent": 4.5,
-                "calcium_percent": 3.5,
-                "phosphorus_percent": 0.6,
-                "lysine_percent": 0.9,
-                "methionine_percent": 0.35,
-                "vitamins": {
-                    "vitamin_a_iu_per_kg": 8000,
-                    "vitamin_d3_iu_per_kg": 2000,
-                    "vitamin_e_iu_per_kg": 25
-                },
-                "minerals": {
-                    "sodium_percent": 0.18,
-                    "chloride_percent": 0.20,
-                    "magnesium_percent": 0.12
-                }
-            },
-            "daily_feed_amount_per_bird_kg": 0.12,
-            "total_daily_feed_kg": 18.0,
-            "seasonal_adjustments": {
-                "energy_adjustment": "Default recommendation - model unavailable",
-                "protein_adjustment": "Default recommendation - model unavailable",
-                "water_considerations": "Ensure fresh water is always available"
-            },
-            "additional_recommendations": [
-                "This is a fallback response due to model error",
-                "Please check your AWS_BEARER_TOKEN_BEDROCK configuration",
-                "Consult with a poultry nutritionist for specific recommendations"
-            ]
-        }
 
     def generate_feed_recommendation(self, chicken_info: ChickenInfo) -> Dict[str, Any]:
         """Generate nutritional feed recommendation using Nova Pro"""
@@ -250,10 +198,6 @@ Consider the bird's age, weight, breed characteristics, and seasonal requirement
         }
         
         return recommendation
-    
-    def get_auth_info(self) -> Dict[str, Any]:
-        """Get authentication information for debugging"""
-        return self.auth_service.get_auth_info()
     
     def validate_credentials(self) -> bool:
         """Validate current AWS credentials"""

@@ -1,22 +1,207 @@
-import React, { useState } from 'react'
-import ChickenForm from '../components/ChickenForm.jsx'
-import Recommendations from '../components/Recommendations.jsx'
-import { calculateRecommendations } from '../utils/calculate.js'
-import { useSettings } from '../hooks/useSettings.js'
+import { useEffect, useRef, useState } from "react";
+import { listProfiles, loadProfile, removeProfile, saveProfile, addHistory, getHistory } from "../hooks/useSettings.js";
+import ChickenForm from "../components/ChickenForm.jsx";
+import Recommendations from "../components/Recommendations.jsx";
+import { preciseFeedAmount } from "../utils/calculate.js";
+import { TrendingUp } from "lucide-react";
+import Chart from "chart.js/auto";
 
 export default function Dashboard() {
-  const [data, setData] = useState(null)
-  const { settings } = useSettings()
+  const [currentGroup, setCurrentGroup] = useState(null);
+  const [model, setModel] = useState(null);
+  const [rows, setRows] = useState([]);
 
-  const onSubmit = (formValues) => {
-    const res = calculateRecommendations(formValues, settings)
-    setData(res)
-  }
+  // tracking inputs
+  const dateRef = useRef(); const weightRef = useRef(); const eggsRef = useRef(); const feedRef = useRef();
+
+  // charts refs
+  const wCanvas = useRef(); const eCanvas = useRef();
+  const wChartRef = useRef(null); const eChartRef = useRef(null);
+
+  const refreshGroups = () => {
+    const keys = listProfiles();
+    const mapped = keys.map((name) => {
+      const g = loadProfile(name);
+      const amt = preciseFeedAmount(g.breed, +g.age, +g.weight, g.health, g.environment, g.season, g.stressLevel, +g.lightHours || 14, g.molting);
+      const totalKg = (amt * (+g.quantity || 0)) / 1000;
+      const costDay = totalKg * (+g.feedCost || 0);
+      const laying = (+g.age >= 18) ? `≈ ${Math.max(30, 80 - (+g.age - 18) + (g.breed === "leghorn" ? 10 : 0))}%` : "—";
+      return { name, g, totalKg, costDay, laying };
+    });
+    setRows(mapped);
+  };
+
+  useEffect(() => { refreshGroups(); }, []);
+
+  const onCalculated = (m) => setModel(m);
+  const onLoaded = (name) => { setCurrentGroup(name); refreshGroups(); };
+
+  const openGroup = (name) => {
+    const g = loadProfile(name);
+    setCurrentGroup(name);
+    // monta um modelo mínimo p/ Recommendations (sem recomputar tudo do zero, mas poderia)
+    setModel(null); // esvazia e espera pelo submit do form (o form carrega dados)
+    setTimeout(()=>{},0);
+  };
+
+  const duplicateGroup = (name) => {
+    const g = loadProfile(name); if (!g) return;
+    const newName = prompt(`Novo nome do grupo (cópia de ${name}):`, `${name}-copia`);
+    if (!newName) return;
+    saveProfile(newName, g);
+    refreshGroups();
+    alert("Grupo duplicado.");
+  };
+
+  const archiveGroup = (name) => {
+    if (!confirm(`Arquivar/remover grupo "${name}"?`)) return;
+    removeProfile(name); refreshGroups();
+  };
+
+  // charts render
+  const renderCharts = () => {
+    if (!currentGroup) return;
+    const hist = getHistory(currentGroup);
+    const labels = hist.map((h) => h.date);
+    const weights = hist.map((h) => +h.weight || null);
+    const eggs = hist.map((h) => +h.eggs || 0);
+    const feed = hist.map((h) => +h.feed || 0);
+    const fcrPerEgg = hist.map((h) => (h.eggs > 0 ? (h.feed / h.eggs).toFixed(3) : null));
+
+    if (wChartRef.current) wChartRef.current.destroy();
+    if (eChartRef.current) eChartRef.current.destroy();
+
+    wChartRef.current = new Chart(wCanvas.current.getContext("2d"), {
+      type: "line",
+      data: { labels, datasets: [{ label: "Peso médio (kg)", data: weights, tension: 0.3, fill: false }] },
+      options: { responsive: true, maintainAspectRatio: false },
+    });
+
+    eChartRef.current = new Chart(eCanvas.current.getContext("2d"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          { label: "Ovos/dia", data: eggs, tension: 0.3 },
+          { label: "Ração (kg)", data: feed, tension: 0.3 },
+          { label: "Ração/ovo (kg)", data: fcrPerEgg, tension: 0.3 },
+        ],
+      },
+      options: { responsive: true, maintainAspectRatio: false },
+    });
+  };
+
+  useEffect(() => { renderCharts(); }, [currentGroup]);
+
+  const addRecord = () => {
+    const date = dateRef.current.value || new Date().toISOString().slice(0, 10);
+    const weight = parseFloat(weightRef.current.value);
+    const eggs = parseInt(eggsRef.current.value);
+    const feed = parseFloat(feedRef.current.value);
+    const group = currentGroup || prompt("Registar em que grupo?");
+
+    if (!group) return;
+    if (!weight || weight <= 0) return alert("Peso inválido.");
+    addHistory(group, { date, weight, eggs: isNaN(eggs) ? 0 : eggs, feed: isNaN(feed) ? 0 : feed });
+    setCurrentGroup(group); // garante refresh
+    renderCharts();
+    alert("Registo adicionado.");
+  };
+
+  const exportCSV = () => {
+    const group = currentGroup || prompt("Exportar de que grupo?");
+    if (!group) return;
+    const hist = getHistory(group);
+    if (!hist.length) return alert("Sem registos.");
+    const rows = [["date", "weight_kg", "eggs", "feed_kg", "feed_per_egg_kg"]];
+    hist.forEach((h) => rows.push([h.date, h.weight, h.eggs, h.feed, h.eggs > 0 ? (h.feed / h.eggs).toFixed(3) : ""]));
+    const csv = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `relatorio_${group}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <ChickenForm onSubmit={onSubmit} />
-      <Recommendations data={data} />
-    </div>
-  )
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <ChickenForm onCalculated={onCalculated} onLoaded={(n)=>{ setCurrentGroup(n); }} />
+        <Recommendations model={model} />
+      </div>
+
+      {/* DASHBOARD GRUPOS */}
+      <div className="mt-12 card shadow-sm p-6" data-aos="fade-up">
+        <h2 className="text-2xl font-semibold text-slate-800 mb-4 flex items-center">
+          Grupos Ativos
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="text-left text-slate-500 border-b">
+              <tr>
+                <th className="py-2">Grupo</th>
+                <th className="py-2">Aves</th>
+                <th className="py-2">Peso</th>
+                <th className="py-2">Ração/dia</th>
+                <th className="py-2">Custo/dia</th>
+                <th className="py-2">Postura</th>
+                <th className="py-2 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length === 0 && (
+                <tr><td colSpan="7" className="py-6 text-center text-slate-400">Sem grupos. Salva um perfil.</td></tr>
+              )}
+              {rows.map((r) => (
+                <tr key={r.name} className="border-b">
+                  <td className="py-2 font-medium">{r.name}</td>
+                  <td>{r.g.quantity || "—"}</td>
+                  <td>{(+r.g.weight || 0).toFixed(2)} kg</td>
+                  <td>{r.totalKg.toFixed(2)} kg</td>
+                  <td>{r.costDay.toFixed(2)} €</td>
+                  <td>{r.laying}</td>
+                  <td className="text-right space-x-3">
+                    <button className="text-emerald-700 underline" onClick={() => openGroup(r.name)}>Abrir</button>
+                    <button className="text-slate-700 underline" onClick={() => duplicateGroup(r.name)}>Duplicar</button>
+                    <button className="text-rose-700 underline" onClick={() => archiveGroup(r.name)}>Arquivar</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* TRACKING + CHARTS */}
+      <div className="mt-12 card shadow-sm p-6" data-aos="fade-up">
+        <div className="overflow-x-auto">
+          <h3 className="text-lg font-medium text-slate-800 mb-4 flex items-center">
+            <TrendingUp className="mr-2" /> Registos do Grupo & Desempenho
+          </h3>
+
+          <div className="grid md:grid-cols-4 gap-3 mb-3">
+            <input ref={dateRef} type="date" className="px-3 py-2 border rounded-lg" defaultValue={new Date().toISOString().slice(0,10)} />
+            <input ref={weightRef} type="number" step="0.01" placeholder="Peso médio (kg)" className="px-3 py-2 border rounded-lg" />
+            <input ref={eggsRef} type="number" step="1" placeholder="Ovos do dia" className="px-3 py-2 border rounded-lg" />
+            <input ref={feedRef} type="number" step="0.01" placeholder="Ração consumida (kg)" className="px-3 py-2 border rounded-lg" />
+          </div>
+          <div className="flex gap-3 mb-4">
+            <button onClick={addRecord} className="btn-sec px-4 py-2 rounded-lg">Adicionar Registo</button>
+            <button onClick={exportCSV} className="btn-sec px-4 py-2 rounded-lg">Exportar CSV</button>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="card p-4 h-64">
+              <h4 className="font-semibold mb-2">Curva de Crescimento (kg)</h4>
+              <canvas ref={wCanvas} height="180"></canvas>
+            </div>
+            <div className="card p-4 h-64">
+              <h4 className="font-semibold mb-2">Produção & Consumo</h4>
+              <canvas ref={eCanvas} height="180"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }

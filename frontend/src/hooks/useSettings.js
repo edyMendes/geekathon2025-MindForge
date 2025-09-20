@@ -1,27 +1,35 @@
-import { useEffect, useState } from 'react'
+// storage + helpers centralizados
+const KEY_PREFIX = "chickenProfile_";
+const HIST_PREFIX = "chickenHistory_";
 
-const DEFAULTS = {
-  feedPrices: { commercial: 0.80, homemade: 0.50, mixed: 0.65 },
-  waterRatio: 2 // water grams per 1 gram of feed
+export function listProfiles() {
+  return Object.keys(localStorage)
+    .filter((k) => k.startsWith(KEY_PREFIX))
+    .map((k) => k.replace(KEY_PREFIX, ""));
 }
 
-export function useSettings() {
-  const [settings, setSettings] = useState(DEFAULTS)
+export function saveProfile(name, data) {
+  localStorage.setItem(KEY_PREFIX + name, JSON.stringify(data));
+}
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('gr-settings')
-      if (raw) setSettings({ ...DEFAULTS, ...JSON.parse(raw) })
-    } catch (_) {}
-    // eslint-disable-next-line
-  }, [])
+export function loadProfile(name) {
+  const raw = localStorage.getItem(KEY_PREFIX + name);
+  return raw ? JSON.parse(raw) : null;
+}
 
-  const save = (next) => {
-    setSettings(next)
-    try {
-      localStorage.setItem('gr-settings', JSON.stringify(next))
-    } catch (_) {}
-  }
+export function removeProfile(name) {
+  localStorage.removeItem(KEY_PREFIX + name);
+  localStorage.removeItem(HIST_PREFIX + name);
+}
 
-  return { settings, setSettings: save, DEFAULTS }
+export function getHistory(name) {
+  const raw = localStorage.getItem(HIST_PREFIX + name);
+  return raw ? JSON.parse(raw) : [];
+}
+
+export function addHistory(name, rec) {
+  const arr = getHistory(name);
+  arr.push(rec);
+  arr.sort((a, b) => new Date(a.date) - new Date(b.date));
+  localStorage.setItem(HIST_PREFIX + name, JSON.stringify(arr));
 }

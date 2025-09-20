@@ -26,6 +26,14 @@ class ChickenInfo(BaseModel):
         le=settings.MAX_AGE_WEEKS,
         description="Age in weeks"
     )
+    environment: str = Field(
+        ..., 
+        description="Environment where chickens are raised"
+    )
+    purpose: str = Field(
+        ..., 
+        description="Purpose of the chicken group"
+    )
     season: Optional[str] = Field(
         None, 
         description="Season (will auto-detect if not provided)"
@@ -45,6 +53,22 @@ class ChickenInfo(BaseModel):
     @classmethod
     def validate_breed(cls, v):
         return v.strip().lower()
+    
+    @field_validator('environment')
+    @classmethod
+    def validate_environment(cls, v):
+        valid_environments = ['free range', 'barn', 'battery cage', 'organic']
+        if v.lower() not in valid_environments:
+            raise ValueError(f'Environment must be one of: {", ".join(valid_environments)}')
+        return v.lower()
+    
+    @field_validator('purpose')
+    @classmethod
+    def validate_purpose(cls, v):
+        valid_purposes = ['eggs', 'breeding', 'meat production']
+        if v.lower() not in valid_purposes:
+            raise ValueError(f'Purpose must be one of: {", ".join(valid_purposes)}')
+        return v.lower()
 
 class VitaminComposition(BaseModel):
     """Model for vitamin composition"""
@@ -84,6 +108,8 @@ class RequestInfo(BaseModel):
     breed: str
     average_weight_kg: float
     age_weeks: int
+    environment: str
+    purpose: str
     season_used: str
 
 class NutritionalRecommendation(BaseModel):

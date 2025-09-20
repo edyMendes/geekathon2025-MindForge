@@ -50,6 +50,8 @@ Chicken Details:
 - Breed: {chicken_info.breed}
 - Average weight: {chicken_info.average_weight_kg} kg per bird
 - Age: {chicken_info.age_weeks} weeks
+- Environment: {chicken_info.environment}
+- Purpose: {chicken_info.purpose}
 - Current season: {season}
 
 Please provide a comprehensive response in JSON format with the following structure:
@@ -88,7 +90,20 @@ Please provide a comprehensive response in JSON format with the following struct
     ]
 }}
 
-Consider the bird's age, weight, breed characteristics, and seasonal requirements. For laying hens, focus on calcium and protein needs. Adjust energy requirements based on the season and provide practical feeding advice."""
+Consider the bird's age, weight, breed characteristics, environment, purpose, and seasonal requirements:
+
+Environment considerations:
+- Free range: Higher energy needs due to activity, may need additional supplements
+- Barn: Standard indoor nutrition requirements
+- Battery cage: Optimized for confined space, focus on nutrient density
+- Organic: Must meet organic certification standards, natural feed sources only
+
+Purpose considerations:
+- Eggs: High calcium and protein for egg production, specific amino acid requirements
+- Breeding: Balanced nutrition for reproductive health, fertility optimization
+- Meat production: High protein for muscle development, energy for growth
+
+Adjust energy requirements based on the season, environment activity levels, and production purpose. Provide practical feeding advice tailored to the specific environment and production goals."""
 
     def _call_nova_pro(self, prompt: str) -> Dict[str, Any]:
         """Call Nova Pro model with the given prompt using the Nova Converse API format"""
@@ -194,6 +209,8 @@ Consider the bird's age, weight, breed characteristics, and seasonal requirement
             "breed": chicken_info.breed,
             "average_weight_kg": chicken_info.average_weight_kg,
             "age_weeks": chicken_info.age_weeks,
+            "environment": chicken_info.environment,
+            "purpose": chicken_info.purpose,
             "season_used": season
         }
         
@@ -211,6 +228,8 @@ Chicken Details:
 - Breed: {chicken_info.breed}
 - Average weight: {chicken_info.average_weight_kg} kg per bird
 - Age: {chicken_info.age_weeks} weeks
+- Environment: {chicken_info.environment}
+- Purpose: {chicken_info.purpose}
 
 Current Feed Recommendation:
 - Total daily feed needed: {total_daily_feed} kg
@@ -235,15 +254,27 @@ Please provide a practical feeding calculation in JSON format with the following
     }}
 }}
 
-Consider the following guidelines:
+Consider the following guidelines based on environment and purpose:
+
+Environment-specific feeding:
+- Free range: May need fewer meals as birds forage, but ensure adequate nutrition
+- Barn: Standard 2-3 meals per day, consistent schedule
+- Battery cage: More frequent smaller meals, optimized for confined space
+- Organic: Must follow organic feeding protocols, natural feeding times
+
+Purpose-specific considerations:
+- Eggs: Consistent morning and evening feedings for optimal egg production
+- Breeding: Balanced feeding schedule to support reproductive health
+- Meat production: Frequent feeding for rapid growth, energy-dense meals
+
+General guidelines:
 - Most chickens do well with 2-3 meals per day
 - Morning and evening feedings are typically optimal
 - Young chickens may need more frequent feeding
-- Laying hens benefit from consistent feeding schedules
 - Provide practical storage advice to maintain feed quality
-- Consider the breed characteristics and age for meal frequency
+- Consider the breed characteristics, age, environment, and purpose for meal frequency
 
-Focus on practical implementation: How should the farmer divide the daily feed amount across meals? What times work best? How should they store the feed?"""
+Focus on practical implementation: How should the farmer divide the daily feed amount across meals? What times work best for this environment and purpose? How should they store the feed?"""
 
     def generate_feed_calculation(self, chicken_info: ChickenInfo) -> Dict[str, Any]:
         """Generate detailed feed calculations based on existing nutritional recommendation"""

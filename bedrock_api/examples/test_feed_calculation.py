@@ -18,6 +18,8 @@ def test_feed_calculation():
         "breed": "laying hen",
         "average_weight_kg": 2.0,
         "age_weeks": 25,
+        "environment": "free range",
+        "purpose": "eggs",
         "season": "autumn"
     }
     

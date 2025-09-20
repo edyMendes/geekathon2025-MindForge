@@ -113,6 +113,8 @@ async def recommend_feed(chicken_info: ChickenInfo):
     - **breed**: Breed of chickens (e.g., 'laying hen')
     - **average_weight_kg**: Average weight in kilograms (0.1-10.0)
     - **age_weeks**: Age in weeks (1-200)
+    - **environment**: Environment where chickens are raised (free range, barn, battery cage, organic)
+    - **purpose**: Purpose of the chicken group (eggs, breeding, meat production)
     - **season**: Optional season override (spring/summer/autumn/winter)
     """
     try:
@@ -148,6 +150,8 @@ async def calculate_feed(chicken_info: ChickenInfo):
     - **breed**: Breed of chickens (e.g., 'laying hen')
     - **average_weight_kg**: Average weight in kilograms (0.1-10.0)
     - **age_weeks**: Age in weeks (1-200)
+    - **environment**: Environment where chickens are raised (free range, barn, battery cage, organic)
+    - **purpose**: Purpose of the chicken group (eggs, breeding, meat production)
     - **season**: Optional season override (spring/summer/autumn/winter)
     """
     try:

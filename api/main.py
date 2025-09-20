@@ -243,6 +243,33 @@ class GroupPerformanceMetrics(Base):
     # Relationships
     chicken_group = relationship("ChickenGroup", back_populates="performance_metrics")
 
+class ChickenProfile(Base):
+    __tablename__ = "chicken_profiles"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    name = Column(String(100), nullable=False)
+    breed = Column(String(100), nullable=False)
+    age = Column(Integer, nullable=False)
+    weight = Column(Float, nullable=False)
+    quantity = Column(Integer, nullable=False)
+    environment = Column(String(50), nullable=False)
+    season = Column(String(20), nullable=False)
+    purpose = Column(String(50), nullable=False)
+    egg_purpose = Column(String(50), nullable=True)
+    stress_level = Column(String(20), nullable=False)
+    feed_type = Column(String(50), nullable=False)
+    feed_brand = Column(String(100), nullable=True)
+    feed_cost = Column(Float, nullable=False)
+    egg_price = Column(Float, nullable=False)
+    molting = Column(String(10), nullable=False)
+    vaccination = Column(String(50), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User")
+
 # Pydantic Models
 class UserBase(BaseModel):
     username: str
@@ -463,6 +490,54 @@ class GroupPerformanceMetricsResponse(GroupPerformanceMetricsBase):
     
     class Config:
         from_attributes = True
+
+class ChickenProfileBase(BaseModel):
+    name: str
+    breed: str
+    age: int
+    weight: float
+    quantity: int
+    environment: str
+    season: str
+    purpose: str
+    egg_purpose: Optional[str] = None
+    stress_level: str
+    feed_type: str
+    feed_brand: Optional[str] = None
+    feed_cost: float
+    egg_price: float
+    molting: str
+    vaccination: str
+
+class ChickenProfileCreate(ChickenProfileBase):
+    user_id: int
+
+class ChickenProfileResponse(ChickenProfileBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class ChickenProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    breed: Optional[str] = None
+    age: Optional[int] = None
+    weight: Optional[float] = None
+    quantity: Optional[int] = None
+    environment: Optional[str] = None
+    season: Optional[str] = None
+    purpose: Optional[str] = None
+    egg_purpose: Optional[str] = None
+    stress_level: Optional[str] = None
+    feed_type: Optional[str] = None
+    feed_brand: Optional[str] = None
+    feed_cost: Optional[float] = None
+    egg_price: Optional[float] = None
+    molting: Optional[str] = None
+    vaccination: Optional[str] = None
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -842,6 +917,71 @@ def read_growth_tracking(skip: int = 0, limit: int = 100, db: Session = Depends(
 def read_performance_metrics(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     metrics = db.query(GroupPerformanceMetrics).offset(skip).limit(limit).all()
     return metrics
+
+# Chicken Profiles
+@app.post("/chicken-profiles/", response_model=ChickenProfileResponse)
+def create_chicken_profile(profile: ChickenProfileCreate, db: Session = Depends(get_db)):
+    # Verify user exists
+    user = get_user(db, profile.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    db_profile = ChickenProfile(**profile.dict())
+    db.add(db_profile)
+    db.commit()
+    db.refresh(db_profile)
+    return db_profile
+
+@app.get("/chicken-profiles/", response_model=List[ChickenProfileResponse])
+def read_chicken_profiles(user_id: Optional[int] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    query = db.query(ChickenProfile)
+    if user_id:
+        query = query.filter(ChickenProfile.user_id == user_id)
+    profiles = query.offset(skip).limit(limit).all()
+    return profiles
+
+@app.get("/users/{user_id}/chicken-profiles/", response_model=List[ChickenProfileResponse])
+def read_user_chicken_profiles(user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    # Verify user exists
+    user = get_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    profiles = db.query(ChickenProfile).filter(ChickenProfile.user_id == user_id).offset(skip).limit(limit).all()
+    return profiles
+
+@app.get("/chicken-profiles/{profile_id}", response_model=ChickenProfileResponse)
+def read_chicken_profile(profile_id: int, db: Session = Depends(get_db)):
+    profile = db.query(ChickenProfile).filter(ChickenProfile.id == profile_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return profile
+
+@app.put("/chicken-profiles/{profile_id}", response_model=ChickenProfileResponse)
+def update_chicken_profile(profile_id: int, profile_update: ChickenProfileUpdate, db: Session = Depends(get_db)):
+    profile = db.query(ChickenProfile).filter(ChickenProfile.id == profile_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Update only provided fields
+    update_data = profile_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(profile, field, value)
+    
+    profile.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(profile)
+    return profile
+
+@app.delete("/chicken-profiles/{profile_id}")
+def delete_chicken_profile(profile_id: int, db: Session = Depends(get_db)):
+    profile = db.query(ChickenProfile).filter(ChickenProfile.id == profile_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    db.delete(profile)
+    db.commit()
+    return {"message": "Profile deleted successfully"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)

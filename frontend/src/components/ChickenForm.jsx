@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 import { Cpu, Save, Folder } from "lucide-react";
 import { useState } from "react";
 import { preciseFeedAmount, optimalFeedingTimes, calculateSeasonalFeedAmount, getAdditionalFeedRecommendations } from "../utils/calculate.js";
 import { saveProfile, loadProfile, listProfiles } from "../hooks/useSettings.js";
+=======
+import { Cpu, Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import { preciseFeedAmount, optimalFeedingTimes } from "../utils/calculate.js";
+import { saveProfile } from "../hooks/useSettings.js";
+>>>>>>> c6836c1 (adapting dashboard with frontend)
 
-export default function ChickenForm({ onCalculated, onLoaded }) {
+export default function ChickenForm({ onCalculated, onLoaded, loadProfileData }) {
   const [form, setForm] = useState({
     breed: "",
     age: "",
@@ -23,6 +30,13 @@ export default function ChickenForm({ onCalculated, onLoaded }) {
   });
 
   const set = (k, v) => setForm((s) => ({ ...s, [k]: v }));
+
+  // Load profile data when provided
+  useEffect(() => {
+    if (loadProfileData) {
+      setForm(loadProfileData);
+    }
+  }, [loadProfileData]);
 
   const calc = (e) => {
     e.preventDefault();
@@ -54,26 +68,22 @@ export default function ChickenForm({ onCalculated, onLoaded }) {
     });
   };
 
-  const save = () => {
+  const save = async () => {
     const { age, weight, quantity } = form;
     if (!parseInt(age) || !parseInt(quantity) || !parseFloat(weight)) return alert("Please fill in age, weight and quantity with valid values.");
     const name = prompt("Group name:");
     if (!name) return;
-    saveProfile(name, { ...form, age: +form.age, weight: +form.weight, quantity: +form.quantity });
-    onLoaded?.(name);
-    alert("Profile saved!");
+    
+    try {
+      await saveProfile(name, { ...form, age: +form.age, weight: +form.weight, quantity: +form.quantity });
+      onLoaded?.(name);
+      alert("Profile saved!");
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert("Error saving profile. Please try again.");
+    }
   };
 
-  const load = () => {
-    const profiles = listProfiles();
-    if (!profiles.length) return alert("No profiles.");
-    const name = prompt("Profiles:\n" + profiles.join("\n") + "\n\nEnter the name to load:");
-    if (!name || !profiles.includes(name)) return;
-    const data = loadProfile(name);
-    setForm(data);
-    onLoaded?.(name);
-    alert("Profile loaded.");
-  };
 
   return (
     <div className="card shadow-sm p-6 card-hover" data-aos="fade-right">
@@ -137,15 +147,12 @@ export default function ChickenForm({ onCalculated, onLoaded }) {
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-3 pt-2">
+        <div className="grid sm:grid-cols-2 gap-3 pt-2">
           <button className="btn-primary w-full py-3 rounded-lg inline-flex items-center justify-center">
             <Cpu className="mr-2" size={18}/> Calculate Recommendations
           </button>
           <button type="button" onClick={save} className="btn-sec w-full py-3 rounded-lg inline-flex items-center justify-center">
             <Save className="mr-2" size={18}/> Save Profile
-          </button>
-          <button type="button" onClick={load} className="btn-sec w-full py-3 rounded-lg inline-flex items-center justify-center">
-            <Folder className="mr-2" size={18}/> Load Profile
           </button>
         </div>
       </form>

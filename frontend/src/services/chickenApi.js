@@ -55,8 +55,9 @@ class ChickenApiService {
   }
 
   // Métodos para perfis
-  async getProfiles() {
-    return apiService.get(this.endpoints.PROFILES);
+  async getProfiles(userId = null) {
+    const params = userId ? { user_id: userId } : {};
+    return apiService.get(this.endpoints.PROFILES, params);
   }
 
   async saveProfile(data) {
@@ -65,6 +66,10 @@ class ChickenApiService {
 
   async updateProfile(id, data) {
     return apiService.put(`${this.endpoints.PROFILES}/${id}`, data);
+  }
+
+  async deleteProfile(id) {
+    return apiService.delete(`${this.endpoints.PROFILES}/${id}`);
   }
 
   // Métodos para analytics

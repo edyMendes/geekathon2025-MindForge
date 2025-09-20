@@ -19,17 +19,26 @@ export default function Dashboard() {
   const wCanvas = useRef(); const eCanvas = useRef();
   const wChartRef = useRef(null); const eChartRef = useRef(null);
 
-  const refreshGroups = () => {
-    const keys = listProfiles();
-    const mapped = keys.map((name) => {
-      const g = loadProfile(name);
-      const amt = preciseFeedAmount(g.breed, +g.age, +g.weight, g.environment, g.season, g.stressLevel, g.molting, g.purpose || "eggs");
-      const totalKg = (amt * (+g.quantity || 0)) / 1000;
-      const costDay = totalKg * (+g.feedCost || 0);
-      const laying = (+g.age >= 18) ? `≈ ${Math.max(30, 80 - (+g.age - 18) + (g.breed === "leghorn" ? 10 : 0))}%` : "—";
-      return { name, g, totalKg, costDay, laying };
-    });
-    setRows(mapped);
+  const refreshGroups = async () => {
+    try {
+      const profiles = await listProfiles();
+      const mapped = await Promise.all(profiles.map(async (name) => {
+        const g = await loadProfile(name);
+        if (!g) return null;
+        const amt = preciseFeedAmount(g.breed, +g.age, +g.weight, g.environment, g.season, g.stressLevel, g.molting, g.purpose || "eggs");
+        const totalKg = (amt * (+g.quantity || 0)) / 1000;
+        const costDay = totalKg * (+g.feedCost || 0);
+        const laying = (+g.age >= 18) ? `≈ ${Math.max(30, 80 - (+g.age - 18) + (g.breed === "leghorn" ? 10 : 0))}%` : "—";
+        return { name, g, totalKg, costDay, laying };
+      }));
+      setRows(mapped.filter(row => row !== null));
+    } catch (error) {
+      console.error('Error refreshing groups:', error);
+      // If user is not logged in, show empty state
+      if (error.message.includes("User must be logged in")) {
+        setRows([]);
+      }
+    }
   };
 
   useEffect(() => { refreshGroups(); }, []);
@@ -37,26 +46,46 @@ export default function Dashboard() {
   const onCalculated = (m) => setModel(m);
   const onLoaded = (name) => { setCurrentGroup(name); refreshGroups(); };
 
-  const openGroup = (name) => {
-    const g = loadProfile(name);
-    setCurrentGroup(name);
-    // monta um modelo mínimo p/ Recommendations (sem recomputar tudo do zero, mas poderia)
-    setModel(null); // esvazia e espera pelo submit do form (o form carrega dados)
-    setTimeout(()=>{},0);
+  const [selectedProfileData, setSelectedProfileData] = useState(null);
+
+  const openGroup = async (name) => {
+    try {
+      const g = await loadProfile(name);
+      if (!g) return;
+      setCurrentGroup(name);
+      setSelectedProfileData(g);
+      // monta um modelo mínimo p/ Recommendations (sem recomputar tudo do zero, mas poderia)
+      setModel(null); // esvazia e espera pelo submit do form (o form carrega dados)
+      setTimeout(()=>{},0);
+    } catch (error) {
+      console.error('Error opening group:', error);
+    }
   };
 
-  const duplicateGroup = (name) => {
-    const g = loadProfile(name); if (!g) return;
-    const newName = prompt(`New group name (copy of ${name}):`, `${name}-copy`);
-    if (!newName) return;
-    saveProfile(newName, g);
-    refreshGroups();
-    alert("Group duplicated.");
+  const duplicateGroup = async (name) => {
+    try {
+      const g = await loadProfile(name); 
+      if (!g) return;
+      const newName = prompt(`New group name (copy of ${name}):`, `${name}-copy`);
+      if (!newName) return;
+      await saveProfile(newName, g);
+      refreshGroups();
+      alert("Group duplicated.");
+    } catch (error) {
+      console.error('Error duplicating group:', error);
+      alert("Error duplicating group. Please try again.");
+    }
   };
 
-  const archiveGroup = (name) => {
+  const archiveGroup = async (name) => {
     if (!confirm(`Archive/remove group "${name}"?`)) return;
-    removeProfile(name); refreshGroups();
+    try {
+      await removeProfile(name);
+      refreshGroups();
+    } catch (error) {
+      console.error('Error removing group:', error);
+      alert("Error removing group. Please try again.");
+    }
   };
 
   // charts render
@@ -127,7 +156,11 @@ export default function Dashboard() {
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <ChickenForm onCalculated={onCalculated} onLoaded={(n)=>{ setCurrentGroup(n); }} />
+        <ChickenForm 
+          onCalculated={onCalculated} 
+          onLoaded={(n)=>{ setCurrentGroup(n); }} 
+          loadProfileData={selectedProfileData}
+        />
         <Recommendations model={model} />
       </div>
 
@@ -156,7 +189,9 @@ export default function Dashboard() {
             </thead>
             <tbody>
               {rows.length === 0 && (
-                <tr><td colSpan="7" className="py-6 text-center text-slate-400 dark:text-slate-500">No groups. Save a profile.</td></tr>
+                <tr><td colSpan="7" className="py-6 text-center text-slate-400 dark:text-slate-500">
+                  No active groups found. Please log in and save a chicken profile to see your groups here.
+                </td></tr>
               )}
               {rows.map((r) => (
                 <tr key={r.name} className="border-b dark:border-slate-600">

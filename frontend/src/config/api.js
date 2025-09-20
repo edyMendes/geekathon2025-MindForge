@@ -47,7 +47,7 @@ const API_CONFIG = {
     CHICKENS: '/chickens',
     FEEDS: '/feeds',
     REPORTS: '/reports',
-    PROFILES: '/profiles',
+    PROFILES: '/chicken-profiles',
     ANALYTICS: '/analytics',
   },
   

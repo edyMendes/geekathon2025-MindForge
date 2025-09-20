@@ -9,9 +9,9 @@ export default function ChickenForm({ onCalculated, onLoaded }) {
     age: "",
     weight: "",
     quantity: "",
-    health: "healthy",
     environment: "free_range",
     season: "summer",
+    purpose: "eggs",
     eggPurpose: "consumption",
     stressLevel: "low",
     feedType: "commercial",
@@ -19,7 +19,6 @@ export default function ChickenForm({ onCalculated, onLoaded }) {
     feedCost: 0.8,
     eggPrice: 0,
     molting: "no",
-    lightHours: 14,
     vaccination: "none",
   });
 
@@ -27,15 +26,15 @@ export default function ChickenForm({ onCalculated, onLoaded }) {
 
   const calc = (e) => {
     e.preventDefault();
-    const { breed, age, weight, quantity, health, environment, season, eggPurpose, stressLevel, feedType, feedBrand, feedCost, molting, lightHours, vaccination, eggPrice } = form;
+    const { breed, age, weight, quantity, environment, season, purpose, eggPurpose, stressLevel, feedType, feedBrand, feedCost, molting, vaccination, eggPrice } = form;
 
     const iAge = parseInt(age), iQty = parseInt(quantity), fW = parseFloat(weight);
     if (!iAge || !iQty || !fW) return alert("Please fill in age, weight and quantity with valid values.");
 
-    const gPerChicken = preciseFeedAmount(breed, iAge, fW, health, environment, season, stressLevel, lightHours, molting);
+    const gPerChicken = preciseFeedAmount(breed, iAge, fW, environment, season, stressLevel, molting, purpose);
     const totalKg = (gPerChicken * iQty) / 1000;
 
-    const times = optimalFeedingTimes(iAge, season, environment, lightHours, health, stressLevel);
+    const times = optimalFeedingTimes(iAge, season, environment, stressLevel, purpose);
 
     onCalculated({
       form,
@@ -98,16 +97,7 @@ export default function ChickenForm({ onCalculated, onLoaded }) {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Quantity</label>
             <input value={form.quantity} onChange={(e)=>set("quantity", e.target.value)} type="number" min="1" className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" placeholder="Ex: 50" />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Health</label>
-            <select value={form.health} onChange={(e)=>set("health", e.target.value)} className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
-              <option value="healthy">Healthy</option>
-              <option value="respiratory">Respiratory problems</option>
-              <option value="digestive">Digestive problems</option>
-              <option value="parasites">Internal parasites</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
+          
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Environment</label>
             <select value={form.environment} onChange={(e)=>set("environment", e.target.value)} className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
@@ -126,9 +116,14 @@ export default function ChickenForm({ onCalculated, onLoaded }) {
               <option value="autumn">Autumn</option>
             </select>
           </div>
+          
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Daily light (h)</label>
-            <input value={form.lightHours} onChange={(e)=>set("lightHours", +e.target.value)} type="number" min="0" max="24" className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" />
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Purpose</label>
+            <select value={form.purpose} onChange={(e)=>set("purpose", e.target.value)} className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+              <option value="eggs">Eggs Production</option>
+              <option value="breeding">Breeding</option>
+              <option value="meat">Meat Production</option>
+            </select>
           </div>
         </div>
 

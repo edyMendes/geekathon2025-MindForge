@@ -322,56 +322,72 @@ Focus on practical implementation: How should the farmer divide the daily feed a
         nutritional_context = feed_calculation.get("nutritional_context", {})
         feed_composition = nutritional_context.get("feed_composition", {})
         
-        return f"""Create a weekly feed recipe calendar for {chicken_info.count} {chicken_info.breed} chickens in {chicken_info.environment} environment for {chicken_info.purpose}.
+        return f"""You are a poultry nutrition expert and feed formulation specialist. Create a detailed weekly feed recipe calendar for the following chicken group:
 
-Daily feed: {feed_calc.get('total_quantity_per_day_kg', 0)} kg, Per meal: {feed_calc.get('quantity_per_meal_g', 0)} g, Meals: {feed_calc.get('meals_per_day', 2)} times daily
-Feeding times: {feed_calc.get('feeding_schedule', [])}
+Chicken Details:
+- Number of birds: {chicken_info.count}
+- Breed: {chicken_info.breed}
+- Average weight: {chicken_info.average_weight_kg} kg per bird
+- Age: {chicken_info.age_weeks} weeks
+- Environment: {chicken_info.environment}
+- Purpose: {chicken_info.purpose}
 
-Nutrition: Protein {feed_composition.get('crude_protein_percent', 'N/A')}%, Energy {feed_composition.get('metabolizable_energy_kcal_per_kg', 'N/A')} kcal/kg, Calcium {feed_composition.get('calcium_percent', 'N/A')}%
+Feed Calculation Summary:
+- Total daily feed: {feed_calc.get('total_quantity_per_day_kg', 0)} kg
+- Per chicken daily: {feed_calc.get('quantity_per_chicken_g', 0)} g
+- Per meal: {feed_calc.get('quantity_per_meal_g', 0)} g
+- Meals per day: {feed_calc.get('meals_per_day', 2)}
+- Feeding schedule: {feed_calc.get('feeding_schedule', [])}
 
-Return ONLY valid JSON without markdown formatting:
+Nutritional Requirements:
+- Protein: {feed_composition.get('crude_protein_percent', 'N/A')}%
+- Energy: {feed_composition.get('metabolizable_energy_kcal_per_kg', 'N/A')} kcal/kg
+- Calcium: {feed_composition.get('calcium_percent', 'N/A')}%
+- Phosphorus: {feed_composition.get('phosphorus_percent', 'N/A')}%
+
+Create a comprehensive weekly feed recipe calendar. Return ONLY valid JSON without markdown formatting:
 
 {{
     "weekly_calendar": {{
         "week_start_date": "2024-01-15",
-        "total_weekly_kg": {feed_calc.get('total_quantity_per_day_kg', 0) * 7},
+        "total_weekly_kg": <total for 7 days>,
         "daily_recipes": [
             {{
                 "day": "Monday",
                 "feeding_recipes": [
                     {{
-                        "feeding_time": "{feed_calc.get('feeding_schedule', ['7:00 AM'])[0] if feed_calc.get('feeding_schedule') else '7:00 AM'}",
+                        "feeding_time": "7:00 AM",
                         "recipe": "Corn 40%, Soybean meal 25%, Wheat 15%, Calcium carbonate 8%, Salt 2%, Vitamins 10%",
-                        "quantity_kg": {feed_calc.get('quantity_per_meal_g', 0) / 1000},
-                        "quantity_grams": {feed_calc.get('quantity_per_meal_g', 0)},
+                        "quantity_kg": <amount for this feeding>,
+                        "quantity_grams": <amount for this feeding in grams>,
                         "nutritional_focus": "High energy for morning activity",
                         "ingredient_breakdown": [
-                            {{"ingredient_name": "Corn", "percentage": 40.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.4}, "nutritional_contribution": "Primary energy source"}},
-                            {{"ingredient_name": "Soybean meal", "percentage": 25.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.25}, "nutritional_contribution": "High-quality protein"}},
-                            {{"ingredient_name": "Wheat", "percentage": 15.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.15}, "nutritional_contribution": "Additional energy"}},
-                            {{"ingredient_name": "Calcium carbonate", "percentage": 8.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.08}, "nutritional_contribution": "Bone health"}},
-                            {{"ingredient_name": "Salt", "percentage": 2.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.02}, "nutritional_contribution": "Electrolyte balance"}},
-                            {{"ingredient_name": "Vitamins", "percentage": 10.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.10}, "nutritional_contribution": "Essential nutrients"}}
+                            {{"ingredient_name": "Corn", "percentage": 40.0, "grams": <calculated>, "nutritional_contribution": "Primary energy source"}},
+                            {{"ingredient_name": "Soybean meal", "percentage": 25.0, "grams": <calculated>, "nutritional_contribution": "High-quality protein"}},
+                            {{"ingredient_name": "Wheat", "percentage": 15.0, "grams": <calculated>, "nutritional_contribution": "Additional energy"}},
+                            {{"ingredient_name": "Calcium carbonate", "percentage": 8.0, "grams": <calculated>, "nutritional_contribution": "Bone health"}},
+                            {{"ingredient_name": "Salt", "percentage": 2.0, "grams": <calculated>, "nutritional_contribution": "Electrolyte balance"}},
+                            {{"ingredient_name": "Vitamins", "percentage": 10.0, "grams": <calculated>, "nutritional_contribution": "Essential nutrients"}}
                         ]
                     }},
                     {{
-                        "feeding_time": "{feed_calc.get('feeding_schedule', ['4:00 PM'])[1] if len(feed_calc.get('feeding_schedule', [])) > 1 else '4:00 PM'}",
+                        "feeding_time": "4:00 PM",
                         "recipe": "Barley 35%, Fish meal 20%, Oats 15%, Corn 15%, Oyster shell 8%, Salt 2%, Vitamins 5%",
-                        "quantity_kg": {feed_calc.get('quantity_per_meal_g', 0) / 1000},
-                        "quantity_grams": {feed_calc.get('quantity_per_meal_g', 0)},
+                        "quantity_kg": <amount for this feeding>,
+                        "quantity_grams": <amount for this feeding in grams>,
                         "nutritional_focus": "Calcium-rich for evening egg formation",
                         "ingredient_breakdown": [
-                            {{"ingredient_name": "Barley", "percentage": 35.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.35}, "nutritional_contribution": "Energy source"}},
-                            {{"ingredient_name": "Fish meal", "percentage": 20.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.20}, "nutritional_contribution": "High protein"}},
-                            {{"ingredient_name": "Oats", "percentage": 15.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.15}, "nutritional_contribution": "Fiber and energy"}},
-                            {{"ingredient_name": "Corn", "percentage": 15.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.15}, "nutritional_contribution": "Carbohydrates"}},
-                            {{"ingredient_name": "Oyster shell", "percentage": 8.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.08}, "nutritional_contribution": "Calcium for eggshells"}},
-                            {{"ingredient_name": "Salt", "percentage": 2.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.02}, "nutritional_contribution": "Electrolytes"}},
-                            {{"ingredient_name": "Vitamins", "percentage": 5.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.05}, "nutritional_contribution": "Essential nutrients"}}
+                            {{"ingredient_name": "Barley", "percentage": 35.0, "grams": <calculated>, "nutritional_contribution": "Energy source"}},
+                            {{"ingredient_name": "Fish meal", "percentage": 20.0, "grams": <calculated>, "nutritional_contribution": "High protein"}},
+                            {{"ingredient_name": "Oats", "percentage": 15.0, "grams": <calculated>, "nutritional_contribution": "Fiber and energy"}},
+                            {{"ingredient_name": "Corn", "percentage": 15.0, "grams": <calculated>, "nutritional_contribution": "Carbohydrates"}},
+                            {{"ingredient_name": "Oyster shell", "percentage": 8.0, "grams": <calculated>, "nutritional_contribution": "Calcium for eggshells"}},
+                            {{"ingredient_name": "Salt", "percentage": 2.0, "grams": <calculated>, "nutritional_contribution": "Electrolytes"}},
+                            {{"ingredient_name": "Vitamins", "percentage": 5.0, "grams": <calculated>, "nutritional_contribution": "Essential nutrients"}}
                         ]
                     }}
                 ],
-                "total_daily_kg": {feed_calc.get('total_quantity_per_day_kg', 0)},
+                "total_daily_kg": <daily amount>,
                 "nutritional_notes": "Balanced nutrition for {chicken_info.purpose}",
                 "special_considerations": ["Monitor water intake", "Check egg quality"]
             }}
@@ -382,7 +398,37 @@ Return ONLY valid JSON without markdown formatting:
     }}
 }}
 
-Create 7 days (Monday-Sunday) with similar structure. Vary ingredients between days while maintaining nutritional balance. Ensure all calculations are accurate."""
+CRITICAL CALCULATION REQUIREMENTS:
+- The total_quantity_per_day_kg from feed_calculation is: {feed_calc.get('total_quantity_per_day_kg', 0)} kg
+- Each day's total_daily_kg MUST equal this exact amount
+- The sum of all feeding quantities in a day MUST equal total_daily_kg
+- All ingredient percentages in each feeding MUST add up to 100%
+- All ingredient grams in each feeding MUST add up to the feeding's quantity_grams
+- Convert kg to grams: 1 kg = 1000 grams
+
+Guidelines for recipe creation:
+1. Use common poultry feed ingredients (corn, soybean meal, wheat, barley, sorghum, millet, fish meal, etc.)
+2. Ensure each recipe meets the nutritional requirements
+3. Create recipes for each specific feeding time (e.g., 7:00 AM, 4:00 PM)
+4. Vary ingredients between feeding times and across days while maintaining nutritional balance
+5. Consider the environment (free range may need different supplements)
+6. Adjust for purpose (eggs need more calcium, meat production needs more protein)
+7. Include specific proportions and mixing instructions for each feeding time
+8. Account for seasonal factors and weather conditions
+9. Provide practical preparation and storage advice
+10. Consider the chicken's age and developmental stage
+11. Ensure recipes are practical for the farmer to prepare
+12. Match the feeding schedule exactly (if 2 meals per day, create 2 recipes per day)
+13. Each feeding time should have its own unique recipe with appropriate nutritional focus
+
+CALCULATION VALIDATION:
+- For each feeding: sum of all ingredient grams = quantity_grams
+- For each feeding: sum of all ingredient percentages = 100%
+- For each day: sum of all feeding quantities = total_daily_kg = {feed_calc.get('total_quantity_per_day_kg', 0)} kg
+- Use realistic ingredient percentages (typically 5-50% per ingredient)
+- Provide detailed nutritional contribution for each ingredient
+
+Create 7 days (Monday-Sunday) with varied, nutritious, and practical recipes for each specific feeding time that maintain the overall nutritional balance while providing variety throughout the day and week. Ensure all calculations are mathematically accurate and quantities add up correctly."""
 
     def generate_weekly_recipes(self, chicken_info: ChickenInfo) -> Dict[str, Any]:
         """Generate weekly feed recipes based on feed calculation"""

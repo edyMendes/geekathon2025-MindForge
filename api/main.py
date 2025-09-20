@@ -2,16 +2,20 @@ from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy import create_engine, Column, Integer, String, Float, Text, ForeignKey, Table, DateTime, Boolean, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session, relationship
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime, date
 import uvicorn
+from passlib.context import CryptContext
 
 # Database setup
 SQLALCHEMY_DATABASE_URL = "sqlite:///./chicken_feeding.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Association table for many-to-many relationship between feed formulations and ingredients
 formulation_ingredients = Table(
@@ -24,6 +28,40 @@ formulation_ingredients = Table(
 )
 
 # Database Models
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, index=True, nullable=False)
+    email = Column(String(100), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    full_name = Column(String(100), nullable=True)
+    is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    chicken_groups = relationship("ChickenGroup", back_populates="user")
+    user_settings = relationship("UserSettings", back_populates="user", uselist=False)
+
+class UserSettings(Base):
+    __tablename__ = "user_settings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, unique=True)
+    language = Column(String(10), default="en")
+    timezone = Column(String(50), default="UTC")
+    currency = Column(String(3), default="USD")
+    measurement_unit = Column(String(10), default="metric")  # metric or imperial
+    notifications_enabled = Column(Boolean, default=True)
+    email_notifications = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User", back_populates="user_settings")
+
 class GrowthStage(Base):
     __tablename__ = "growth_stages"
     
@@ -45,7 +83,8 @@ class ChickenGroup(Base):
     __tablename__ = "chicken_groups"
     
     id = Column(Integer, primary_key=True, index=True)
-    batch_number = Column(String(50), unique=True, index=True, nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    batch_number = Column(String(50), index=True, nullable=False)  # Removed unique constraint to allow same batch number for different users
     breed = Column(String(100), nullable=False)
     quantity = Column(Integer, nullable=False)
     current_quantity = Column(Integer, nullable=False)  # Updated when mortality occurs
@@ -57,6 +96,7 @@ class ChickenGroup(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
+    user = relationship("User", back_populates="chicken_groups")
     current_stage = relationship("GrowthStage", back_populates="groups")
     feeding_records = relationship("GroupFeedingRecord", back_populates="chicken_group")
     growth_tracking = relationship("GroupGrowthTracking", back_populates="chicken_group")
@@ -203,6 +243,56 @@ class GroupPerformanceMetrics(Base):
     chicken_group = relationship("ChickenGroup", back_populates="performance_metrics")
 
 # Pydantic Models
+class UserBase(BaseModel):
+    username: str
+    email: str
+    full_name: Optional[str] = None
+
+class UserCreate(UserBase):
+    password: str
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class UserResponse(UserBase):
+    id: int
+    is_active: bool
+    is_admin: bool
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class UserSettingsBase(BaseModel):
+    language: str = "en"
+    timezone: str = "UTC"
+    currency: str = "USD"
+    measurement_unit: str = "metric"
+    notifications_enabled: bool = True
+    email_notifications: bool = True
+
+class UserSettingsCreate(UserSettingsBase):
+    pass
+
+class UserSettingsUpdate(BaseModel):
+    language: Optional[str] = None
+    timezone: Optional[str] = None
+    currency: Optional[str] = None
+    measurement_unit: Optional[str] = None
+    notifications_enabled: Optional[bool] = None
+    email_notifications: Optional[bool] = None
+
+class UserSettingsResponse(UserSettingsBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
 class GrowthStageBase(BaseModel):
     name: str
     description: Optional[str] = None
@@ -221,6 +311,7 @@ class GrowthStageResponse(GrowthStageBase):
         from_attributes = True
 
 class ChickenGroupBase(BaseModel):
+    user_id: int
     batch_number: str
     breed: str
     quantity: int
@@ -383,6 +474,32 @@ def get_db():
     finally:
         db.close()
 
+# Authentication helper functions
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def authenticate_user(db: Session, username: str, password: str):
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        return False
+    if not verify_password(password, user.hashed_password):
+        return False
+    return user
+
+def get_user(db: Session, user_id: int):
+    return db.query(User).filter(User.id == user_id).first()
+
+def create_user_settings(db: Session, user_id: int):
+    """Create default user settings for a new user"""
+    user_settings = UserSettings(user_id=user_id)
+    db.add(user_settings)
+    db.commit()
+    db.refresh(user_settings)
+    return user_settings
+
 # Key Functions Implementation
 def calculate_group_daily_feed_kg(quantity: int, avg_weight: float, feed_percentage: float) -> float:
     """Calculate daily feed requirements for a group"""
@@ -517,6 +634,81 @@ def calculate_group_performance(group_id: int, calc_date: date, db: Session):
 
 # API Endpoints
 
+# User Management
+@app.post("/users/register", response_model=UserResponse)
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    # Check if username already exists
+    db_user = db.query(User).filter(User.username == user.username).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    
+    # Check if email already exists
+    db_user = db.query(User).filter(User.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create new user
+    hashed_password = get_password_hash(user.password)
+    db_user = User(
+        username=user.username,
+        email=user.email,
+        full_name=user.full_name,
+        hashed_password=hashed_password
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    
+    # Create default user settings
+    create_user_settings(db, db_user.id)
+    
+    return db_user
+
+@app.post("/users/login")
+def login_user(user_credentials: UserLogin, db: Session = Depends(get_db)):
+    user = authenticate_user(db, user_credentials.username, user_credentials.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    if not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return {"message": "Login successful", "user_id": user.id, "username": user.username}
+
+@app.get("/users/{user_id}", response_model=UserResponse)
+def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
+    user = get_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@app.get("/users/", response_model=List[UserResponse])
+def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    users = db.query(User).offset(skip).limit(limit).all()
+    return users
+
+# User Settings
+@app.get("/users/{user_id}/settings", response_model=UserSettingsResponse)
+def get_user_settings(user_id: int, db: Session = Depends(get_db)):
+    user_settings = db.query(UserSettings).filter(UserSettings.user_id == user_id).first()
+    if not user_settings:
+        raise HTTPException(status_code=404, detail="User settings not found")
+    return user_settings
+
+@app.put("/users/{user_id}/settings", response_model=UserSettingsResponse)
+def update_user_settings(user_id: int, settings_update: UserSettingsUpdate, db: Session = Depends(get_db)):
+    user_settings = db.query(UserSettings).filter(UserSettings.user_id == user_id).first()
+    if not user_settings:
+        raise HTTPException(status_code=404, detail="User settings not found")
+    
+    # Update only provided fields
+    update_data = settings_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(user_settings, field, value)
+    
+    user_settings.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(user_settings)
+    return user_settings
+
 # Growth Stages
 @app.post("/growth-stages/", response_model=GrowthStageResponse)
 def create_growth_stage(stage: GrowthStageCreate, db: Session = Depends(get_db)):
@@ -534,6 +726,11 @@ def read_growth_stages(skip: int = 0, limit: int = 100, db: Session = Depends(ge
 # Chicken Groups
 @app.post("/chicken-groups/", response_model=ChickenGroupResponse)
 def create_chicken_group(group: ChickenGroupCreate, db: Session = Depends(get_db)):
+    # Verify user exists
+    user = get_user(db, group.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
     db_group = ChickenGroup(**group.dict())
     db_group.current_quantity = group.quantity  # Initialize current quantity
     db.add(db_group)
@@ -542,8 +739,21 @@ def create_chicken_group(group: ChickenGroupCreate, db: Session = Depends(get_db
     return db_group
 
 @app.get("/chicken-groups/", response_model=List[ChickenGroupResponse])
-def read_chicken_groups(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    groups = db.query(ChickenGroup).offset(skip).limit(limit).all()
+def read_chicken_groups(user_id: Optional[int] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    query = db.query(ChickenGroup)
+    if user_id:
+        query = query.filter(ChickenGroup.user_id == user_id)
+    groups = query.offset(skip).limit(limit).all()
+    return groups
+
+@app.get("/users/{user_id}/chicken-groups/", response_model=List[ChickenGroupResponse])
+def read_user_chicken_groups(user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    # Verify user exists
+    user = get_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    groups = db.query(ChickenGroup).filter(ChickenGroup.user_id == user_id).offset(skip).limit(limit).all()
     return groups
 
 # Food Types

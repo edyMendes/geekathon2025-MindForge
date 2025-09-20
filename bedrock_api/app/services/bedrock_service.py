@@ -54,7 +54,7 @@ Chicken Details:
 - Purpose: {chicken_info.purpose}
 - Current season: {season}
 
-Please provide a comprehensive response in JSON format with the following structure:
+Please provide a comprehensive response in JSON format with the following structure. Return ONLY valid JSON without any markdown formatting or code blocks:
 {{
     "feed_composition": {{
         "crude_protein_percent": <percentage>,
@@ -167,12 +167,25 @@ Adjust energy requirements based on the season, environment activity levels, and
     def _parse_response(self, generated_text: str) -> Dict[str, Any]:
         """Parse JSON response from Nova Pro model"""
         try:
+            # Clean the response text
+            cleaned_text = generated_text.strip()
+            
+            # Remove markdown code blocks if present
+            if cleaned_text.startswith('```json'):
+                cleaned_text = cleaned_text[7:]  # Remove ```json
+            if cleaned_text.startswith('```'):
+                cleaned_text = cleaned_text[3:]  # Remove ```
+            if cleaned_text.endswith('```'):
+                cleaned_text = cleaned_text[:-3]  # Remove trailing ```
+            
+            cleaned_text = cleaned_text.strip()
+            
             # Find JSON in the response
-            json_start = generated_text.find('{')
-            json_end = generated_text.rfind('}') + 1
+            json_start = cleaned_text.find('{')
+            json_end = cleaned_text.rfind('}') + 1
             
             if json_start != -1 and json_end > json_start:
-                json_str = generated_text[json_start:json_end]
+                json_str = cleaned_text[json_start:json_end]
                 recommendation = json.loads(json_str)
                 return recommendation
             else:
@@ -235,7 +248,7 @@ Current Feed Recommendation:
 - Total daily feed needed: {total_daily_feed} kg
 - Feed per bird per day: {per_bird_feed} kg ({per_bird_feed * 1000} grams)
 
-Please provide a practical feeding calculation in JSON format with the following structure:
+Please provide a practical feeding calculation in JSON format with the following structure. Return ONLY valid JSON without any markdown formatting or code blocks:
 {{
     "feed_calculation": {{
         "total_quantity_per_day_kg": {total_daily_feed},
@@ -299,6 +312,98 @@ Focus on practical implementation: How should the farmer divide the daily feed a
                 "additional_recommendations": base_recommendation.get("additional_recommendations", [])
             },
             "request_info": base_recommendation.get("request_info", {})
+        }
+        
+        return response
+    
+    def _create_weekly_recipe_prompt(self, feed_calculation: Dict[str, Any], chicken_info: ChickenInfo) -> str:
+        """Create prompt for generating weekly feed recipes based on feed calculation"""
+        feed_calc = feed_calculation.get("feed_calculation", {})
+        nutritional_context = feed_calculation.get("nutritional_context", {})
+        feed_composition = nutritional_context.get("feed_composition", {})
+        
+        return f"""Create a weekly feed recipe calendar for {chicken_info.count} {chicken_info.breed} chickens in {chicken_info.environment} environment for {chicken_info.purpose}.
+
+Daily feed: {feed_calc.get('total_quantity_per_day_kg', 0)} kg, Per meal: {feed_calc.get('quantity_per_meal_g', 0)} g, Meals: {feed_calc.get('meals_per_day', 2)} times daily
+Feeding times: {feed_calc.get('feeding_schedule', [])}
+
+Nutrition: Protein {feed_composition.get('crude_protein_percent', 'N/A')}%, Energy {feed_composition.get('metabolizable_energy_kcal_per_kg', 'N/A')} kcal/kg, Calcium {feed_composition.get('calcium_percent', 'N/A')}%
+
+Return ONLY valid JSON without markdown formatting:
+
+{{
+    "weekly_calendar": {{
+        "week_start_date": "2024-01-15",
+        "total_weekly_kg": {feed_calc.get('total_quantity_per_day_kg', 0) * 7},
+        "daily_recipes": [
+            {{
+                "day": "Monday",
+                "feeding_recipes": [
+                    {{
+                        "feeding_time": "{feed_calc.get('feeding_schedule', ['7:00 AM'])[0] if feed_calc.get('feeding_schedule') else '7:00 AM'}",
+                        "recipe": "Corn 40%, Soybean meal 25%, Wheat 15%, Calcium carbonate 8%, Salt 2%, Vitamins 10%",
+                        "quantity_kg": {feed_calc.get('quantity_per_meal_g', 0) / 1000},
+                        "quantity_grams": {feed_calc.get('quantity_per_meal_g', 0)},
+                        "nutritional_focus": "High energy for morning activity",
+                        "ingredient_breakdown": [
+                            {{"ingredient_name": "Corn", "percentage": 40.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.4}, "nutritional_contribution": "Primary energy source"}},
+                            {{"ingredient_name": "Soybean meal", "percentage": 25.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.25}, "nutritional_contribution": "High-quality protein"}},
+                            {{"ingredient_name": "Wheat", "percentage": 15.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.15}, "nutritional_contribution": "Additional energy"}},
+                            {{"ingredient_name": "Calcium carbonate", "percentage": 8.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.08}, "nutritional_contribution": "Bone health"}},
+                            {{"ingredient_name": "Salt", "percentage": 2.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.02}, "nutritional_contribution": "Electrolyte balance"}},
+                            {{"ingredient_name": "Vitamins", "percentage": 10.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.10}, "nutritional_contribution": "Essential nutrients"}}
+                        ]
+                    }},
+                    {{
+                        "feeding_time": "{feed_calc.get('feeding_schedule', ['4:00 PM'])[1] if len(feed_calc.get('feeding_schedule', [])) > 1 else '4:00 PM'}",
+                        "recipe": "Barley 35%, Fish meal 20%, Oats 15%, Corn 15%, Oyster shell 8%, Salt 2%, Vitamins 5%",
+                        "quantity_kg": {feed_calc.get('quantity_per_meal_g', 0) / 1000},
+                        "quantity_grams": {feed_calc.get('quantity_per_meal_g', 0)},
+                        "nutritional_focus": "Calcium-rich for evening egg formation",
+                        "ingredient_breakdown": [
+                            {{"ingredient_name": "Barley", "percentage": 35.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.35}, "nutritional_contribution": "Energy source"}},
+                            {{"ingredient_name": "Fish meal", "percentage": 20.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.20}, "nutritional_contribution": "High protein"}},
+                            {{"ingredient_name": "Oats", "percentage": 15.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.15}, "nutritional_contribution": "Fiber and energy"}},
+                            {{"ingredient_name": "Corn", "percentage": 15.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.15}, "nutritional_contribution": "Carbohydrates"}},
+                            {{"ingredient_name": "Oyster shell", "percentage": 8.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.08}, "nutritional_contribution": "Calcium for eggshells"}},
+                            {{"ingredient_name": "Salt", "percentage": 2.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.02}, "nutritional_contribution": "Electrolytes"}},
+                            {{"ingredient_name": "Vitamins", "percentage": 5.0, "grams": {feed_calc.get('quantity_per_meal_g', 0) * 0.05}, "nutritional_contribution": "Essential nutrients"}}
+                        ]
+                    }}
+                ],
+                "total_daily_kg": {feed_calc.get('total_quantity_per_day_kg', 0)},
+                "nutritional_notes": "Balanced nutrition for {chicken_info.purpose}",
+                "special_considerations": ["Monitor water intake", "Check egg quality"]
+            }}
+        ],
+        "weekly_nutritional_goals": ["Optimize {chicken_info.purpose}", "Maintain bone health", "Support immune function"],
+        "preparation_notes": ["Mix ingredients thoroughly", "Store in dry place", "Use within 30 days"],
+        "seasonal_adjustments": ["Adjust for cooler weather", "Increase energy content"]
+    }}
+}}
+
+Create 7 days (Monday-Sunday) with similar structure. Vary ingredients between days while maintaining nutritional balance. Ensure all calculations are accurate."""
+
+    def generate_weekly_recipes(self, chicken_info: ChickenInfo) -> Dict[str, Any]:
+        """Generate weekly feed recipes based on feed calculation"""
+        
+        # First get the feed calculation
+        feed_calculation = self.generate_feed_calculation(chicken_info)
+        
+        logger.info(f"Generating weekly recipes for {chicken_info.count} {chicken_info.breed} chickens")
+        
+        # Create specific prompt for weekly recipes
+        prompt = self._create_weekly_recipe_prompt(feed_calculation, chicken_info)
+        
+        # Call Nova Pro for weekly recipes
+        recipe_result = self._call_nova_pro(prompt)
+        
+        # Combine results with feed calculation and nutritional context
+        response = {
+            "weekly_calendar": recipe_result.get("weekly_calendar", {}),
+            "feed_calculation": feed_calculation.get("feed_calculation", {}),
+            "nutritional_context": feed_calculation.get("nutritional_context", {}),
+            "request_info": feed_calculation.get("request_info", {})
         }
         
         return response

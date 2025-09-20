@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Dict, Any
 import logging
 
-from app.models.chicken import ChickenInfo, FeedCalculationResponse
+from app.models.chicken import ChickenInfo, FeedCalculationResponse, WeeklyRecipeResponse
 from app.services.bedrock_service import BedrockService
 from app.core.config import settings
 
@@ -167,4 +167,58 @@ async def calculate_feed(chicken_info: ChickenInfo):
         raise
     except Exception as e:
         logger.error(f"Unexpected error in calculate_feed: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.post("/weekly-recipes", response_model=Dict[str, Any])
+async def generate_weekly_recipes(chicken_info: ChickenInfo):
+    """
+    Generate weekly feed recipe calendar with daily recipes based on feed composition
+    
+    This endpoint creates a comprehensive weekly feeding plan with:
+    - **daily_recipes**: Detailed recipes for each feeding time for each day
+    - **weekly_nutritional_goals**: Overall nutritional objectives for the week
+    - **preparation_notes**: Practical preparation and storage guidance
+    - **seasonal_adjustments**: Seasonal considerations for the week
+    
+    Each daily recipe includes:
+    - **feeding_recipes**: List of recipes for each feeding time (e.g., 7:00 AM, 4:00 PM)
+    - **nutritional_notes**: Specific nutritional focus for that day
+    - **special_considerations**: Day-specific feeding considerations
+    
+    Each feeding recipe includes:
+    - **feeding_time**: Specific time of feeding (e.g., "7:00 AM", "4:00 PM")
+    - **recipe**: Detailed feed recipe with ingredients and proportions
+    - **quantity_kg**: Feed quantity for this specific feeding
+    - **quantity_grams**: Feed quantity for this specific feeding in grams
+    - **nutritional_focus**: Nutritional focus for this specific feeding
+    - **ingredient_breakdown**: Detailed breakdown of each ingredient with:
+        - **ingredient_name**: Name of the ingredient
+        - **percentage**: Percentage of total feed (must sum to 100%)
+        - **grams**: Exact amount in grams for this feeding
+        - **nutritional_contribution**: What this ingredient contributes nutritionally
+    
+    **Quantity Validation**: The sum of all feeding quantities in a day equals the total_daily_kg, which matches the total_quantity_per_day_kg from the feed calculation.
+    
+    Input parameters:
+    - **count**: Number of chickens (1-10000)
+    - **breed**: Breed of chickens (e.g., 'laying hen')
+    - **average_weight_kg**: Average weight in kilograms (0.1-10.0)
+    - **age_weeks**: Age in weeks (1-200)
+    - **environment**: Environment where chickens are raised (free range, barn, battery cage, organic)
+    - **purpose**: Purpose of the chicken group (eggs, breeding, meat production)
+    - **season**: Optional season override (spring/summer/autumn/winter)
+    """
+    try:
+        logger.info(f"Processing weekly recipe request for {chicken_info.count} {chicken_info.breed}")
+        
+        # Generate weekly recipes
+        recipes = bedrock_service.generate_weekly_recipes(chicken_info)
+        
+        logger.info("Weekly recipes generated successfully")
+        return recipes
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in generate_weekly_recipes: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

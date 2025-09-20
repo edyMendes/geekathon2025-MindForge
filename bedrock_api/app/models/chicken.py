@@ -135,3 +135,43 @@ class FeedCalculationResponse(BaseModel):
     feed_calculation: FeedCalculation
     nutritional_context: Dict[str, Any] = Field(..., description="Context from the original feed recommendation")
     request_info: RequestInfo
+
+class IngredientBreakdown(BaseModel):
+    """Model for detailed ingredient breakdown"""
+    ingredient_name: str = Field(..., description="Name of the ingredient")
+    percentage: float = Field(..., ge=0, le=100, description="Percentage of total feed")
+    grams: float = Field(..., ge=0, description="Amount in grams for this feeding")
+    nutritional_contribution: str = Field(..., description="What this ingredient contributes nutritionally")
+
+class FeedingRecipe(BaseModel):
+    """Model for a single feeding recipe"""
+    feeding_time: str = Field(..., description="Time of feeding (e.g., '7:00 AM', '4:00 PM')")
+    recipe: str = Field(..., description="Detailed feed recipe with ingredients and proportions")
+    quantity_kg: float = Field(..., ge=0, description="Feed quantity for this feeding in kg")
+    quantity_grams: float = Field(..., ge=0, description="Feed quantity for this feeding in grams")
+    nutritional_focus: str = Field(..., description="Nutritional focus for this feeding")
+    ingredient_breakdown: List[IngredientBreakdown] = Field(..., description="Detailed breakdown of each ingredient with grams and percentages")
+
+class DailyRecipe(BaseModel):
+    """Model for daily feed recipe"""
+    day: str = Field(..., description="Day of the week (Monday, Tuesday, etc.)")
+    feeding_recipes: List[FeedingRecipe] = Field(..., description="Recipes for each feeding time")
+    total_daily_kg: float = Field(..., ge=0, description="Total feed for the day in kg")
+    nutritional_notes: str = Field(..., description="Nutritional notes for the day")
+    special_considerations: List[str] = Field(..., description="Special feeding considerations")
+
+class WeeklyFeedCalendar(BaseModel):
+    """Model for weekly feed calendar"""
+    week_start_date: str = Field(..., description="Start date of the week (YYYY-MM-DD)")
+    total_weekly_kg: float = Field(..., ge=0, description="Total feed for the week in kg")
+    daily_recipes: List[DailyRecipe] = Field(..., description="Daily recipes for the week")
+    weekly_nutritional_goals: List[str] = Field(..., description="Weekly nutritional goals")
+    preparation_notes: List[str] = Field(..., description="Feed preparation and storage notes")
+    seasonal_adjustments: List[str] = Field(..., description="Seasonal adjustments for the week")
+
+class WeeklyRecipeResponse(BaseModel):
+    """Model for complete weekly recipe response"""
+    weekly_calendar: WeeklyFeedCalendar
+    feed_calculation: FeedCalculation
+    nutritional_context: Dict[str, Any] = Field(..., description="Context from the original feed recommendation")
+    request_info: RequestInfo

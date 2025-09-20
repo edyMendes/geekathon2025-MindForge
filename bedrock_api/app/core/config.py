@@ -31,7 +31,7 @@ class Settings:
     }
     
     # Model Configuration
-    MODEL_MAX_TOKENS: int = int(os.getenv("MODEL_MAX_TOKENS", "4000"))
+    MODEL_MAX_TOKENS: int = int(os.getenv("MODEL_MAX_TOKENS", "8000"))
     MODEL_TEMPERATURE: float = float(os.getenv("MODEL_TEMPERATURE", "0.3"))
     MODEL_TOP_P: float = float(os.getenv("MODEL_TOP_P", "0.9"))
     

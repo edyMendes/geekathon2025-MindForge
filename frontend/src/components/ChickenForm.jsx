@@ -1,14 +1,9 @@
-<<<<<<< HEAD
-import { Cpu, Save, Folder } from "lucide-react";
-import { useState } from "react";
-import { preciseFeedAmount, optimalFeedingTimes, calculateSeasonalFeedAmount, getAdditionalFeedRecommendations } from "../utils/calculate.js";
-import { saveProfile, loadProfile, listProfiles } from "../hooks/useSettings.js";
-=======
+
 import { Cpu, Save } from "lucide-react";
 import { useState, useEffect } from "react";
-import { preciseFeedAmount, optimalFeedingTimes } from "../utils/calculate.js";
+import { preciseFeedAmount, optimalFeedingTimes, calculateSeasonalFeedAmount, getAdditionalFeedRecommendations } from "../utils/calculate.js";
 import { saveProfile } from "../hooks/useSettings.js";
->>>>>>> c6836c1 (adapting dashboard with frontend)
+
 
 export default function ChickenForm({ onCalculated, onLoaded, loadProfileData }) {
   const [form, setForm] = useState({
@@ -33,7 +28,7 @@ export default function ChickenForm({ onCalculated, onLoaded, loadProfileData })
 
   // Load profile data when provided
   useEffect(() => {
-    if (loadProfileData) {
+    if (loadProfileData && typeof loadProfileData === 'object') {
       setForm(loadProfileData);
     }
   }, [loadProfileData]);

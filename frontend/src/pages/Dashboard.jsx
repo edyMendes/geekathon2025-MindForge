@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [currentGroup, setCurrentGroup] = useState(null);
   const [model, setModel] = useState(null);
   const [rows, setRows] = useState([]);
+  const [selectedProfileData, setSelectedProfileData] = useState(null);
 
   // tracking inputs
   const dateRef = useRef(); const weightRef = useRef(); const eggsRef = useRef(); const feedRef = useRef();
@@ -22,21 +23,36 @@ export default function Dashboard() {
   const refreshGroups = async () => {
     try {
       const profiles = await listProfiles();
+      if (!Array.isArray(profiles)) {
+        console.warn('Profiles is not an array:', profiles);
+        setRows([]);
+        return;
+      }
+      
       const mapped = await Promise.all(profiles.map(async (name) => {
-        const g = await loadProfile(name);
-        if (!g) return null;
-        const amt = preciseFeedAmount(g.breed, +g.age, +g.weight, g.environment, g.season, g.stressLevel, g.molting, g.purpose || "eggs");
-        const totalKg = (amt * (+g.quantity || 0)) / 1000;
-        const costDay = totalKg * (+g.feedCost || 0);
-        const laying = (+g.age >= 18) ? `≈ ${Math.max(30, 80 - (+g.age - 18) + (g.breed === "leghorn" ? 10 : 0))}%` : "—";
-        return { name, g, totalKg, costDay, laying };
+        try {
+          const g = await loadProfile(name);
+          if (!g) return null;
+          const amt = preciseFeedAmount(g.breed, +g.age, +g.weight, g.environment, g.season, g.stressLevel, g.molting, g.purpose || "eggs");
+          const totalKg = (amt * (+g.quantity || 0)) / 1000;
+          const costDay = totalKg * (+g.feedCost || 0);
+          const laying = (+g.age >= 18) ? `≈ ${Math.max(30, 80 - (+g.age - 18) + (g.breed === "leghorn" ? 10 : 0))}%` : "—";
+          return { name, g, totalKg, costDay, laying };
+        } catch (profileError) {
+          console.error(`Error loading profile ${name}:`, profileError);
+          return null;
+        }
       }));
       setRows(mapped.filter(row => row !== null));
     } catch (error) {
       console.error('Error refreshing groups:', error);
       // If user is not logged in, show empty state
-      if (error.message.includes("User must be logged in")) {
+      if (error.message && error.message.includes("User must be logged in")) {
         setRows([]);
+      } else {
+        // For other errors, show empty state and log the error
+        setRows([]);
+        console.error('Unexpected error refreshing groups:', error);
       }
     }
   };
@@ -46,12 +62,13 @@ export default function Dashboard() {
   const onCalculated = (m) => setModel(m);
   const onLoaded = (name) => { setCurrentGroup(name); refreshGroups(); };
 
-  const [selectedProfileData, setSelectedProfileData] = useState(null);
-
   const openGroup = async (name) => {
     try {
       const g = await loadProfile(name);
-      if (!g) return;
+      if (!g) {
+        console.warn('Profile not found:', name);
+        return;
+      }
       setCurrentGroup(name);
       setSelectedProfileData(g);
       // monta um modelo mínimo p/ Recommendations (sem recomputar tudo do zero, mas poderia)
@@ -59,6 +76,7 @@ export default function Dashboard() {
       setTimeout(()=>{},0);
     } catch (error) {
       console.error('Error opening group:', error);
+      alert('Error loading profile. Please try again.');
     }
   };
 

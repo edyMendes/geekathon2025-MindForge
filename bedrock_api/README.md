@@ -83,31 +83,42 @@ pip install -r requirements.txt
 
 ### AWS Configuration
 
-Set your AWS bearer token using environment variables:
+You can configure the API using either environment variables or a `.env` file.
 
-#### Required Variables
+#### Method 1: Using .env File (Recommended)
+
+1. **Copy the template:**
+   ```bash
+   cp env.example .env
+   ```
+
+2. **Edit the .env file:**
+   ```bash
+   # Required
+   AWS_BEARER_TOKEN_BEDROCK=your_bearer_token_here
+   AWS_REGION=us-east-1
+   
+   # Optional (with defaults shown)
+   BEDROCK_MODEL_ID=amazon.nova-pro-v1:0
+   BEDROCK_CONNECT_TIMEOUT=60
+   BEDROCK_READ_TIMEOUT=60
+   BEDROCK_MAX_ATTEMPTS=3
+   MODEL_MAX_TOKENS=4000
+   MODEL_TEMPERATURE=0.3
+   MODEL_TOP_P=0.9
+   ```
+
+3. **Start the server:**
+   ```bash
+   python main.py
+   ```
+
+#### Method 2: Using Environment Variables
+
 ```bash
 export AWS_BEARER_TOKEN_BEDROCK=your_bearer_token_here
 export AWS_REGION=us-east-1
-```
-
-#### Optional Variables
-```bash
-export BEDROCK_MODEL_ID=amazon.nova-pro-v1:0  # default
-export BEDROCK_CONNECT_TIMEOUT=60             # default
-export BEDROCK_READ_TIMEOUT=60                # default
-export BEDROCK_MAX_ATTEMPTS=3                 # default
-export MODEL_MAX_TOKENS=4000                  # default
-export MODEL_TEMPERATURE=0.3                  # default
-export MODEL_TOP_P=0.9                        # default
-```
-
-#### Using .env File
-Create a `.env` file in the project root:
-```bash
-AWS_BEARER_TOKEN_BEDROCK=your_bearer_token_here
-AWS_REGION=us-east-1
-BEDROCK_MODEL_ID=amazon.nova-pro-v1:0
+python main.py
 ```
 
 ## Usage
@@ -145,11 +156,14 @@ Once the server is running, visit:
 ### Example Request
 
 ```bash
-# First, set your AWS bearer token
+# Method 1: Using .env file (easiest)
+cp env.example .env
+# Edit .env file with your bearer token
+python main.py
+
+# Method 2: Using environment variables
 export AWS_BEARER_TOKEN_BEDROCK=your_bearer_token_here
 export AWS_REGION=us-east-1
-
-# Start the server
 python main.py
 
 # Make a request

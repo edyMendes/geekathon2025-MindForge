@@ -17,7 +17,7 @@ dev:  ## Start development server
 	@python scripts/run_dev.py
 
 test:  ## Run unit tests
-	@pytest tests/ -v
+	@source venv/bin/activate && python -m pytest tests/ -v
 
 test-api:  ## Test the API endpoints
 	@python examples/test_api.py

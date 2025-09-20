@@ -3,6 +3,10 @@ Configuration settings for the Chicken Feed Nutritional Advisor API
 """
 import os
 from typing import Optional
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 class Settings:
     """Application settings"""

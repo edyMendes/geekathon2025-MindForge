@@ -1,7 +1,7 @@
 """
 Pydantic models for chicken-related data structures
 """
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, Dict, Any, List
 from app.core.config import settings
 
@@ -31,7 +31,8 @@ class ChickenInfo(BaseModel):
         description="Season (will auto-detect if not provided)"
     )
     
-    @validator('season')
+    @field_validator('season')
+    @classmethod
     def validate_season(cls, v):
         if v is not None:
             valid_seasons = ['spring', 'summer', 'autumn', 'winter']
@@ -40,7 +41,8 @@ class ChickenInfo(BaseModel):
             return v.lower()
         return v
     
-    @validator('breed')
+    @field_validator('breed')
+    @classmethod
     def validate_breed(cls, v):
         return v.strip().lower()
 

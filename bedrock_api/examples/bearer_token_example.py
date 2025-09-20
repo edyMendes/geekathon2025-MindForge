@@ -12,10 +12,14 @@ BASE_URL = "http://localhost:8000"
 
 def setup_environment_variables():
     """Show how to set up the required environment variables"""
-    print("🔑 Required Environment Variables")
+    print("🔑 Configuration Options")
     print("=" * 40)
-    print("You need to set these 3 required variables:")
+    print("Method 1: Using .env file (Recommended)")
+    print("1. cp env.example .env")
+    print("2. Edit .env file with your bearer token")
+    print("3. python main.py")
     print()
+    print("Method 2: Using environment variables")
     print("export AWS_BEARER_TOKEN_BEDROCK='your_bearer_token_here'")
     print("export AWS_REGION='us-east-1'")
     print("export BEDROCK_MODEL_ID='amazon.nova-pro-v1:0'")

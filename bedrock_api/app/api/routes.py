@@ -8,6 +8,7 @@ import logging
 
 from app.models.chicken import ChickenInfo
 from app.services.bedrock_service import BedrockService
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -19,12 +20,39 @@ bedrock_service = BedrockService()
 
 @router.get("/")
 async def root():
-    """Root endpoint with API information"""
-    return {
+    """Root endpoint with API information and configuration status"""
+    
+    # Check configuration status
+    config_status = "ready"
+    missing_vars = []
+    
+    if not settings.AWS_BEARER_TOKEN_BEDROCK:
+        missing_vars.append("AWS_BEARER_TOKEN_BEDROCK")
+        config_status = "missing_credentials"
+        
+    if not settings.AWS_REGION:
+        missing_vars.append("AWS_REGION")
+        config_status = "missing_credentials"
+    
+    response = {
         "message": "Chicken Feed Nutritional Advisor API", 
         "version": "1.0.0",
-        "docs": "/docs"
+        "docs": "/docs",
+        "status": config_status,
+        "aws_region": settings.AWS_REGION,
+        "model_id": settings.BEDROCK_MODEL_ID
     }
+    
+    if missing_vars:
+        response["missing_environment_variables"] = missing_vars
+        response["setup_instructions"] = {
+            "1": "Set AWS_BEARER_TOKEN_BEDROCK=your_bearer_token_here",
+            "2": "Set AWS_REGION=us-east-1", 
+            "3": "Restart the server",
+            "4": "Visit /docs for API documentation"
+        }
+    
+    return response
 
 @router.get("/health")
 async def health_check():

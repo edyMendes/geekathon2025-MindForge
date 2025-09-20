@@ -2,6 +2,12 @@
 Tests for Pydantic models
 """
 import pytest
+import sys
+import os
+
+# Add the parent directory to the path so we can import from app
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from pydantic import ValidationError
 from app.models.chicken import ChickenInfo, FeedComposition, VitaminComposition, MineralComposition
 

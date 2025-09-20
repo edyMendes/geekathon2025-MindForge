@@ -29,22 +29,31 @@ class AWSAuthService:
     """Simple service for AWS bearer token authentication"""
     
     def __init__(self):
-        """Initialize with bearer token validation"""
-        try:
-            # Validate required settings
-            settings.validate_required_settings()
-            logger.info("AWS Bearer Token authentication initialized")
-        except ValueError as e:
-            logger.error(f"Configuration error: {e}")
-            raise HTTPException(status_code=500, detail=f"Configuration error: {str(e)}")
+        """Initialize without validation - validation happens at runtime"""
+        logger.info("AWS Bearer Token authentication service initialized")
     
     def create_bedrock_client(self) -> boto3.client:
         """Create Bedrock client with bearer token"""
         try:
+            # Validate settings when actually needed
+            if not settings.AWS_BEARER_TOKEN_BEDROCK:
+                raise HTTPException(
+                    status_code=500,
+                    detail="AWS_BEARER_TOKEN_BEDROCK is required but not set. Please set this environment variable."
+                )
+            
+            if not settings.AWS_REGION:
+                raise HTTPException(
+                    status_code=500,
+                    detail="AWS_REGION is required but not set. Please set this environment variable."
+                )
+            
             client = get_bedrock_client()
             logger.info(f"Created Bedrock client for region: {settings.AWS_REGION}")
             return client
             
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"Failed to create Bedrock client: {e}")
             raise HTTPException(

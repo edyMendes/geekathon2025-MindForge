@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Dict, Any
 import logging
 
-from app.models.chicken import ChickenInfo
+from app.models.chicken import ChickenInfo, FeedCalculationResponse
 from app.services.bedrock_service import BedrockService
 from app.core.config import settings
 
@@ -128,4 +128,39 @@ async def recommend_feed(chicken_info: ChickenInfo):
         raise
     except Exception as e:
         logger.error(f"Unexpected error in recommend_feed: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.post("/calculate-feed", response_model=Dict[str, Any])
+async def calculate_feed(chicken_info: ChickenInfo):
+    """
+    Generate detailed feed calculations including quantities per day, per chicken, per meal, and feeding schedule
+    
+    Based on the nutritional recommendation, this endpoint provides:
+    - **total_quantity_per_day_kg**: Total feed needed per day in kg
+    - **quantity_per_chicken_g**: Feed amount per chicken in grams
+    - **quantity_per_meal_g**: Feed amount per meal in grams  
+    - **meals_per_day**: Recommended number of meals per day
+    - **feeding_schedule**: Optimal feeding times
+    - **storage_recommendations**: Feed storage best practices
+    
+    Input parameters:
+    - **count**: Number of chickens (1-10000)
+    - **breed**: Breed of chickens (e.g., 'laying hen')
+    - **average_weight_kg**: Average weight in kilograms (0.1-10.0)
+    - **age_weeks**: Age in weeks (1-200)
+    - **season**: Optional season override (spring/summer/autumn/winter)
+    """
+    try:
+        logger.info(f"Processing feed calculation request for {chicken_info.count} {chicken_info.breed}")
+        
+        # Generate detailed feed calculations
+        calculation = bedrock_service.generate_feed_calculation(chicken_info)
+        
+        logger.info("Feed calculation generated successfully")
+        return calculation
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in calculate_feed: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

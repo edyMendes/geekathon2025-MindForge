@@ -94,3 +94,18 @@ class NutritionalRecommendation(BaseModel):
     seasonal_adjustments: SeasonalAdjustments
     additional_recommendations: List[str]
     request_info: RequestInfo
+
+class FeedCalculation(BaseModel):
+    """Model for feed calculation details"""
+    total_quantity_per_day_kg: float = Field(..., ge=0, description="Total feed quantity per day in kg")
+    quantity_per_chicken_g: float = Field(..., ge=0, description="Feed quantity per chicken in grams")
+    quantity_per_meal_g: float = Field(..., ge=0, description="Feed quantity per meal in grams")
+    meals_per_day: int = Field(..., ge=1, description="Number of meals per day")
+    feeding_schedule: List[str] = Field(..., description="Recommended feeding times")
+    storage_recommendations: List[str] = Field(..., description="Feed storage recommendations")
+    
+class FeedCalculationResponse(BaseModel):
+    """Model for complete feed calculation response"""
+    feed_calculation: FeedCalculation
+    nutritional_context: Dict[str, Any] = Field(..., description="Context from the original feed recommendation")
+    request_info: RequestInfo

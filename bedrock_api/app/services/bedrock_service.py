@@ -199,6 +199,79 @@ Consider the bird's age, weight, breed characteristics, and seasonal requirement
         
         return recommendation
     
+    def _create_feed_calculation_prompt(self, feed_recommendation: Dict[str, Any], chicken_info: ChickenInfo) -> str:
+        """Create prompt for detailed feed calculation based on existing recommendation"""
+        total_daily_feed = feed_recommendation.get("total_daily_feed_kg", 0)
+        per_bird_feed = feed_recommendation.get("daily_feed_amount_per_bird_kg", 0)
+        
+        return f"""You are a poultry nutrition expert. Based on the following nutritional feed recommendation, please provide detailed feeding calculations and practical feeding guidance:
+
+Chicken Details:
+- Number of birds: {chicken_info.count}
+- Breed: {chicken_info.breed}
+- Average weight: {chicken_info.average_weight_kg} kg per bird
+- Age: {chicken_info.age_weeks} weeks
+
+Current Feed Recommendation:
+- Total daily feed needed: {total_daily_feed} kg
+- Feed per bird per day: {per_bird_feed} kg ({per_bird_feed * 1000} grams)
+
+Please provide a practical feeding calculation in JSON format with the following structure:
+{{
+    "feed_calculation": {{
+        "total_quantity_per_day_kg": {total_daily_feed},
+        "quantity_per_chicken_g": {per_bird_feed * 1000},
+        "quantity_per_meal_g": <amount per meal in grams>,
+        "meals_per_day": <recommended number of meals>,
+        "feeding_schedule": [
+            "<time 1 (e.g., 7:00 AM)>",
+            "<time 2 (e.g., 4:00 PM)>"
+        ],
+        "storage_recommendations": [
+            "<storage tip 1>",
+            "<storage tip 2>",
+            "<storage tip 3>"
+        ]
+    }}
+}}
+
+Consider the following guidelines:
+- Most chickens do well with 2-3 meals per day
+- Morning and evening feedings are typically optimal
+- Young chickens may need more frequent feeding
+- Laying hens benefit from consistent feeding schedules
+- Provide practical storage advice to maintain feed quality
+- Consider the breed characteristics and age for meal frequency
+
+Focus on practical implementation: How should the farmer divide the daily feed amount across meals? What times work best? How should they store the feed?"""
+
+    def generate_feed_calculation(self, chicken_info: ChickenInfo) -> Dict[str, Any]:
+        """Generate detailed feed calculations based on existing nutritional recommendation"""
+        
+        # First get the base nutritional recommendation
+        base_recommendation = self.generate_feed_recommendation(chicken_info)
+        
+        logger.info(f"Generating feed calculations for {chicken_info.count} {chicken_info.breed} chickens")
+        
+        # Create specific prompt for feed calculations
+        prompt = self._create_feed_calculation_prompt(base_recommendation, chicken_info)
+        
+        # Call Nova Pro for feed calculations
+        calculation_result = self._call_nova_pro(prompt)
+        
+        # Combine results with nutritional context
+        response = {
+            "feed_calculation": calculation_result.get("feed_calculation", {}),
+            "nutritional_context": {
+                "feed_composition": base_recommendation.get("feed_composition", {}),
+                "seasonal_adjustments": base_recommendation.get("seasonal_adjustments", {}),
+                "additional_recommendations": base_recommendation.get("additional_recommendations", [])
+            },
+            "request_info": base_recommendation.get("request_info", {})
+        }
+        
+        return response
+    
     def validate_credentials(self) -> bool:
         """Validate current AWS credentials"""
         return self.auth_service.validate_credentials()

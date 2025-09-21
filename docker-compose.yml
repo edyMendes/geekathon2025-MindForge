@@ -12,7 +12,7 @@ services:
       - PYTHONPATH=/app
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/docs"]
+      test: ["CMD", "curl", "-f", "http://34.207.110.83:8001/docs"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -36,7 +36,7 @@ services:
       - ./.env:/app/.env:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://34.207.110.83:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -49,8 +49,8 @@ services:
     build: 
       context: ./frontend
       args:
-        VITE_API_BASE_URL: http://localhost:8001
-        VITE_BEDROCK_API_BASE_URL: http://localhost:8000
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://34.207.110.83:8001}
+        VITE_BEDROCK_API_BASE_URL: ${VITE_BEDROCK_API_BASE_URL:-http://34.207.110.83:8000}
     container_name: chicken-feeding-frontend
     ports:
       - "80:80"
@@ -59,7 +59,7 @@ services:
       - bedrock-api
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      test: ["CMD", "curl", "-f", "http://34.207.110.83/health"]
       interval: 30s
       timeout: 10s
       retries: 3

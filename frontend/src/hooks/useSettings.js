@@ -119,6 +119,10 @@ export async function removeProfile(name) {
       throw new Error("Profile not found");
     }
     
+    console.log('Profile found:', profile);
+    console.log('Profile ID:', profile.id);
+    console.log('Profile name:', profile.name);
+    
     // Delete the profile using its ID
     await chickenApiService.deleteProfile(profile.id);
   } catch (error) {

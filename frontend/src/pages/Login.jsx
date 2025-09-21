@@ -153,11 +153,7 @@ export default function Login({ onLogin, onSwitchToRegister }) {
                 </label>
               </div>
 
-              <div className="text-sm">
-                <a href="#" className="font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300">
-                  Forgot password?
-                </a>
-              </div>
+              
             </div>
 
             <div>
@@ -177,18 +173,7 @@ export default function Login({ onLogin, onSwitchToRegister }) {
               </button>
             </div>
 
-            <div className="text-center">
-              <span className="text-sm text-slate-600 dark:text-slate-400">
-                Don't have an account?{" "}
-                <button
-                  type="button"
-                  onClick={onSwitchToRegister}
-                  className="font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300"
-                >
-                  Register here
-                </button>
-              </span>
-            </div>
+            
           </form>
         </div>
       </div>

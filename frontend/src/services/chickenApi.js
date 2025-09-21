@@ -13,7 +13,7 @@ class ChickenApiService {
   }
 
   async getChickenById(id) {
-    return apiService.get(`${this.endpoints.CHICKENS}/${id}`);
+    return apiService.get(`${this.endpoints.CHICKENS}${id}`);
   }
 
   async createChicken(data) {
@@ -21,11 +21,11 @@ class ChickenApiService {
   }
 
   async updateChicken(id, data) {
-    return apiService.put(`${this.endpoints.CHICKENS}/${id}`, data);
+    return apiService.put(`${this.endpoints.CHICKENS}${id}`, data);
   }
 
   async deleteChicken(id) {
-    return apiService.delete(`${this.endpoints.CHICKENS}/${id}`);
+    return apiService.delete(`${this.endpoints.CHICKENS}${id}`);
   }
 
   // Métodos para ração
@@ -51,7 +51,7 @@ class ChickenApiService {
   }
 
   async exportReport(id, format = 'csv') {
-    return apiService.get(`${this.endpoints.REPORTS}/${id}/export?format=${format}`);
+    return apiService.get(`${this.endpoints.REPORTS}${id}/export?format=${format}`);
   }
 
   // Métodos para perfis
@@ -65,11 +65,15 @@ class ChickenApiService {
   }
 
   async updateProfile(id, data) {
-    return apiService.put(`${this.endpoints.PROFILES}/${id}`, data);
+    return apiService.put(`${this.endpoints.PROFILES}${id}`, data);
   }
 
   async deleteProfile(id) {
-    return apiService.delete(`${this.endpoints.PROFILES}/${id}`);
+    const url = `${this.endpoints.PROFILES}${id}`;
+    console.log('Delete profile URL:', url);
+    console.log('Profile ID:', id);
+    console.log('PROFILES endpoint:', this.endpoints.PROFILES);
+    return apiService.delete(url);
   }
 
   // Métodos para analytics

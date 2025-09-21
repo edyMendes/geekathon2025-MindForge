@@ -90,6 +90,58 @@ class BedrockApiService {
     return this.makeRequest(this.endpoints.SEASONS);
   }
 
+  // Get disease recovery recommendations using Bedrock API
+  async getDiseaseRecovery(diseaseInfo) {
+    const payload = this.transformDiseaseData(diseaseInfo);
+    
+    return this.makeRequest(this.endpoints.DISEASE_RECOVERY, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  // Get disease weekly recipes using Bedrock API
+  async getDiseaseWeeklyRecipes(diseaseInfo) {
+    const payload = this.transformDiseaseData(diseaseInfo);
+    
+    return this.makeRequest(this.endpoints.DISEASE_WEEKLY_RECIPES, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  // Transform disease form data to Bedrock API format
+  transformDiseaseData(formData) {
+    const breedMapping = {
+      'rhode_island': 'laying hen',
+      'leghorn': 'laying hen',
+      'sussex': 'laying hen',
+      'orpington': 'laying hen',
+      'plymouth': 'laying hen',
+      'outra': 'laying hen'
+    };
+
+    const diseaseMapping = {
+      'respiratory_infection': 'respiratory_infection',
+      'coccidiosis': 'coccidiosis',
+      'mites_lice': 'mites_lice',
+      'egg_binding': 'egg_binding',
+      'marek_disease': 'marek_disease',
+      'newcastle_disease': 'newcastle_disease'
+    };
+
+    const transformedData = {
+      count: parseInt(formData.quantity) || 1,
+      breed: breedMapping[formData.breed] || 'laying hen',
+      average_weight_kg: parseFloat(formData.weight) || 0,
+      age_weeks: parseInt(formData.age) || 0,
+      disease: diseaseMapping[formData.disease] || formData.disease
+    };
+    
+    console.log('Disease form data transformed:', transformedData);
+    return transformedData;
+  }
+
   // Transform frontend form data to Bedrock API format
   transformChickenData(formData) {
     const breedMapping = {

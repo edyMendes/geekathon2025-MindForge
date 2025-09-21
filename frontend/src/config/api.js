@@ -3,8 +3,8 @@ const API_CONFIG = {
   // API base URL (can be changed via environment variable)
   BASE_URL: import.meta.env.VITE_API_BASE_URL,
   
-  // Bedrock API base URL for AI services
-  BEDROCK_API_BASE_URL: import.meta.env.VITE_BEDROCK_API_BASE_URL,
+  // Bedrock API base URL for AI services (fallback to main API if not configured)
+  BEDROCK_API_BASE_URL: import.meta.env.VITE_BEDROCK_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001',
   
   // Authentication settings
   AUTH: {
@@ -47,11 +47,11 @@ const API_CONFIG = {
   // Application specific endpoints
   ENDPOINTS: {
     // Example endpoints for your chicken project
-    CHICKENS: '/chickens',
-    FEEDS: '/feeds',
-    REPORTS: '/reports',
-    PROFILES: '/chicken-profiles',
-    ANALYTICS: '/analytics',
+    CHICKENS: '/chickens/',
+    FEEDS: '/feeds/',
+    REPORTS: '/reports/',
+    PROFILES: '/chicken-profiles/',
+    ANALYTICS: '/analytics/',
   },
   
   // Bedrock AI API endpoints
@@ -66,6 +66,8 @@ const API_CONFIG = {
     RECOMMEND_FEED: '/recommend-feed',
     CALCULATE_FEED: '/calculate-feed',
     WEEKLY_RECIPES: '/weekly-recipes',
+    DISEASE_RECOVERY: '/disease-recovery',
+    DISEASE_WEEKLY_RECIPES: '/disease-weekly-recipes',
     HEALTH_CHECK: '/health',
     AUTH_INFO: '/auth/info',
     AUTH_VALIDATE: '/auth/validate',
@@ -96,7 +98,7 @@ const API_CONFIG = {
 export const getApiUrl = (endpoint) => {
   const baseUrl = API_CONFIG.BASE_URL?.replace(/\/$/, '') || 'http://localhost:8001'; // Remove trailing slash, fallback to default
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  return `${baseUrl}${cleanEndpoint}`;
+  return `${cleanBaseUrl}${cleanEndpoint}`;
 };
 
 // Function to get authentication settings

@@ -539,8 +539,7 @@ class ChickenProfileUpdate(BaseModel):
     molting: Optional[str] = None
     vaccination: Optional[str] = None
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Create tables - moved to after all models are defined
 
 # FastAPI app
 app = FastAPI(title="Chicken Feeding Management System", version="1.0.0")
@@ -1007,6 +1006,183 @@ def delete_chicken_profile(profile_id: int, db: Session = Depends(get_db)):
     db.delete(profile)
     db.commit()
     return {"message": "Profile deleted successfully"}
+
+# Bedrock AI API endpoints (fallback implementation)
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "chicken-feeding-api"}
+
+@app.get("/seasons")
+def get_seasons():
+    return {
+        "seasons": ["spring", "summer", "autumn", "winter"],
+        "current_season": "summer"
+    }
+
+@app.post("/weekly-recipes")
+def get_weekly_recipes(request: dict):
+    """Generate weekly feeding recipes based on chicken profile"""
+    try:
+        # Extract chicken data from request
+        breed = request.get("breed", "leghorn")
+        age = request.get("age", 20)
+        weight = request.get("weight", 1.5)
+        quantity = request.get("quantity", 10)
+        environment = request.get("environment", "free_range")
+        season = request.get("season", "summer")
+        purpose = request.get("purpose", "eggs")
+        stress_level = request.get("stress_level", "low")
+        molting = request.get("molting", "no")
+        
+        # Generate sample weekly recipes
+        recipes = []
+        for day in range(7):
+            day_name = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][day]
+            
+            # Calculate base feed amount
+            base_feed = 0.12 * weight  # 120g per kg of body weight
+            if age < 18:
+                base_feed *= 0.8  # Less feed for younger chickens
+            elif age > 50:
+                base_feed *= 0.9  # Slightly less for older chickens
+            
+            # Adjust for season
+            if season == "winter":
+                base_feed *= 1.1  # More feed in winter
+            elif season == "summer":
+                base_feed *= 0.95  # Less feed in summer
+            
+            # Adjust for stress level
+            if stress_level == "high":
+                base_feed *= 1.15
+            elif stress_level == "medium":
+                base_feed *= 1.05
+            
+            # Adjust for molting
+            if molting == "yes":
+                base_feed *= 1.2  # More protein during molting
+            
+            total_feed = base_feed * quantity
+            
+            recipe = {
+                "day": day_name,
+                "date": f"2024-01-{15 + day:02d}",
+                "meals": [
+                    {
+                        "time": "06:00",
+                        "type": "morning",
+                        "feed_type": "starter" if age < 18 else "layer",
+                        "amount_kg": round(total_feed * 0.4, 3),
+                        "ingredients": [
+                            {"name": "Corn", "percentage": 60},
+                            {"name": "Soybean meal", "percentage": 25},
+                            {"name": "Wheat bran", "percentage": 10},
+                            {"name": "Calcium carbonate", "percentage": 5}
+                        ],
+                        "notes": "High energy for morning activity"
+                    },
+                    {
+                        "time": "14:00",
+                        "type": "afternoon",
+                        "feed_type": "starter" if age < 18 else "layer",
+                        "amount_kg": round(total_feed * 0.35, 3),
+                        "ingredients": [
+                            {"name": "Corn", "percentage": 55},
+                            {"name": "Soybean meal", "percentage": 30},
+                            {"name": "Wheat bran", "percentage": 10},
+                            {"name": "Calcium carbonate", "percentage": 5}
+                        ],
+                        "notes": "Balanced nutrition for afternoon"
+                    },
+                    {
+                        "time": "18:00",
+                        "type": "evening",
+                        "feed_type": "starter" if age < 18 else "layer",
+                        "amount_kg": round(total_feed * 0.25, 3),
+                        "ingredients": [
+                            {"name": "Corn", "percentage": 50},
+                            {"name": "Soybean meal", "percentage": 35},
+                            {"name": "Wheat bran", "percentage": 10},
+                            {"name": "Calcium carbonate", "percentage": 5}
+                        ],
+                        "notes": "Protein-rich for overnight"
+                    }
+                ],
+                "total_daily_feed_kg": round(total_feed, 3),
+                "water_requirement_l": round(total_feed * 2, 1),  # 2L water per kg feed
+                "special_notes": [
+                    "Ensure fresh water is always available",
+                    "Monitor feed consumption daily",
+                    "Adjust amounts based on actual consumption"
+                ]
+            }
+            
+            recipes.append(recipe)
+        
+        return {
+            "success": True,
+            "recipes": recipes,
+            "summary": {
+                "total_weekly_feed_kg": round(sum(r["total_daily_feed_kg"] for r in recipes), 2),
+                "avg_daily_feed_kg": round(sum(r["total_daily_feed_kg"] for r in recipes) / 7, 2),
+                "breed": breed,
+                "age_weeks": age,
+                "season": season
+            }
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to generate recipes: {str(e)}",
+            "recipes": []
+        }
+
+@app.post("/recommend-feed")
+def recommend_feed(request: dict):
+    """Recommend feed type and amount based on chicken profile"""
+    try:
+        breed = request.get("breed", "leghorn")
+        age = request.get("age", 20)
+        weight = request.get("weight", 1.5)
+        purpose = request.get("purpose", "eggs")
+        
+        # Determine feed type based on age and purpose
+        if age < 6:
+            feed_type = "starter"
+            protein_percent = 20
+        elif age < 18:
+            feed_type = "grower"
+            protein_percent = 16
+        else:
+            feed_type = "layer"
+            protein_percent = 18
+        
+        # Calculate daily feed amount
+        daily_feed_per_bird = 0.12 * weight  # 120g per kg body weight
+        
+        return {
+            "success": True,
+            "recommendation": {
+                "feed_type": feed_type,
+                "protein_percentage": protein_percent,
+                "daily_amount_per_bird_kg": round(daily_feed_per_bird, 3),
+                "feeding_frequency": 3,
+                "notes": f"Recommended {feed_type} feed for {breed} chickens at {age} weeks"
+            }
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to recommend feed: {str(e)}"
+        }
+
+# Create tables after all models are defined
+try:
+    Base.metadata.create_all(bind=engine)
+    print("Database tables created successfully")
+except Exception as e:
+    print(f"Error creating database tables: {e}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)

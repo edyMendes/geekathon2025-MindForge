@@ -4,26 +4,49 @@ import anime from "animejs";
 
 export default function DiseaseTrackingCalendar({ disease, treatment, chickenData }) {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [selectedWeek, setSelectedWeek] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [dailyProgress, setDailyProgress] = useState({});
+  const [expandedDay, setExpandedDay] = useState(null);
   
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const currentDayIndex = currentTime.getDay();
 
-  // Generate weekly schedule based on disease and treatment
-  const generateWeeklySchedule = () => {
+  // Helper functions for date management
+  const getWeekStartingFromDate = (startDate) => {
+    const week = [];
+    const today = new Date(startDate);
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      week.push({
+        date: date,
+        dayName: date.toLocaleDateString('en-US', { weekday: 'long' }),
+        dayShort: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        dateString: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        isToday: i === 0,
+        dayIndex: i
+      });
+    }
+    return week;
+  };
+
+  // Generate 7-week schedule based on disease and treatment
+  const generateSevenWeekSchedule = () => {
     if (!disease || !treatment) return [];
 
     const weeks = [];
-    const totalWeeks = Math.ceil(treatment.recoveryTimeline / 7);
+    const totalWeeks = Math.min(7, Math.ceil(treatment.recoveryTimeline / 7));
     
     for (let week = 0; week < totalWeeks; week++) {
-      const weekDays = [];
+      const weekStartDate = new Date(selectedDate);
+      weekStartDate.setDate(selectedDate.getDate() + (week * 7));
+      const weekDays = getWeekStartingFromDate(weekStartDate);
       
-      for (let day = 0; day < 7; day++) {
-        const dayNumber = week * 7 + day + 1;
-        const isPastDay = dayNumber <= (selectedWeek * 7 + day + 1);
-        const isCurrentDay = dayNumber === (selectedWeek * 7 + day + 1);
+      const weekWithTreatment = weekDays.map((weekDay, dayIndex) => {
+        const dayNumber = week * 7 + dayIndex + 1;
+        const isPastDay = dayNumber <= Math.floor((new Date() - new Date(selectedDate)) / (1000 * 60 * 60 * 24)) + 1;
+        const isCurrentDay = dayNumber === Math.floor((new Date() - new Date(selectedDate)) / (1000 * 60 * 60 * 24)) + 1;
         
         // Determine treatment phase based on day
         let phase = "early";
@@ -43,19 +66,24 @@ export default function DiseaseTrackingCalendar({ disease, treatment, chickenDat
         // Generate daily tasks
         const dailyTasks = generateDailyTasks(dayNumber, phase, intensity, medications, feedAdjustments);
         
-        weekDays.push({
+        return {
+          ...weekDay,
           dayNumber,
-          dayName: daysOfWeek[day],
           phase,
           intensity,
           isPastDay,
           isCurrentDay,
           tasks: dailyTasks,
           progress: dailyProgress[dayNumber] || 0
-        });
-      }
+        };
+      });
       
-      weeks.push(weekDays);
+      weeks.push({
+        weekNumber: week + 1,
+        weekDays: weekWithTreatment,
+        startDate: weekStartDate,
+        endDate: new Date(weekStartDate.getTime() + 6 * 24 * 60 * 60 * 1000)
+      });
     }
     
     return weeks;
@@ -216,11 +244,24 @@ export default function DiseaseTrackingCalendar({ disease, treatment, chickenDat
       targets: '#diseaseCalendar .calendar-day',
       opacity: [0, 1],
       scale: [0.8, 1],
-      delay: anime.stagger(100),
+      delay: anime.stagger(50),
       duration: 600,
       easing: 'easeOutExpo'
     });
-  }, [selectedWeek]);
+  }, [selectedDate]);
+
+  useEffect(() => {
+    // Animate expanded day details
+    if (expandedDay) {
+      anime({
+        targets: '.expanded-day-content',
+        opacity: [0, 1],
+        translateY: [-20, 0],
+        duration: 400,
+        easing: 'easeOutExpo'
+      });
+    }
+  }, [expandedDay]);
 
   if (!disease || !treatment) {
     return (
@@ -236,160 +277,201 @@ export default function DiseaseTrackingCalendar({ disease, treatment, chickenDat
     );
   }
 
-  const weeklySchedule = generateWeeklySchedule();
-  const currentWeek = weeklySchedule[selectedWeek] || [];
+  const sevenWeekSchedule = generateSevenWeekSchedule();
 
   return (
     <div className="card shadow-sm p-6" data-aos="fade-up">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-200 flex items-center">
-          <CalendarDays className="mr-2 text-red-500" />
-          Disease Tracking Calendar
-        </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <div className="flex items-center">
+          <CalendarDays className="w-6 h-6 mr-2 text-red-500" />
+          <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-200">
+            Disease Tracking Calendar
+          </h2>
+        </div>
         
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setSelectedWeek(Math.max(0, selectedWeek - 1))}
-            disabled={selectedWeek === 0}
-            className="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded disabled:opacity-50"
-          >
-            ← Previous
-          </button>
-          <span className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 rounded text-sm">
-            Week {selectedWeek + 1} of {weeklySchedule.length}
-          </span>
-          <button
-            onClick={() => setSelectedWeek(Math.min(weeklySchedule.length - 1, selectedWeek + 1))}
-            disabled={selectedWeek === weeklySchedule.length - 1}
-            className="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded disabled:opacity-50"
-          >
-            Next →
-          </button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="w-4 h-4 text-slate-500" />
+            <input
+              type="date"
+              value={selectedDate.toISOString().split('T')[0]}
+              onChange={(e) => setSelectedDate(new Date(e.target.value))}
+              className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            />
+          </div>
+          <div className="text-sm text-slate-600 dark:text-slate-400">
+            <span className="font-medium">Treatment Duration: {treatment?.recoveryTimeline || 0} days</span>
+          </div>
         </div>
       </div>
 
-      <div id="diseaseCalendar" className="grid md:grid-cols-7 gap-3 mb-6">
-        {currentWeek.map((day, index) => (
-          <div
-            key={day.dayNumber}
-            className={`calendar-day relative border rounded-lg p-3 transition-all duration-300 ${
-              day.isCurrentDay
-                ? "bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25 scale-105"
-                : day.isPastDay
-                ? "bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-                : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 hover:border-red-400 dark:hover:border-red-500"
-            } ${getIntensityColor(day.intensity)}`}
-          >
-            {day.isCurrentDay && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-yellow-400 rounded-full animate-ping-slow"></span>
-            )}
-            
-            <div className="flex items-center justify-between mb-2">
-              <span className={`font-semibold ${day.isCurrentDay ? "text-white" : "text-slate-900 dark:text-slate-100"}`}>
-                {day.dayName}
-              </span>
-              <span className={`text-xs px-2 py-1 rounded ${getPhaseColor(day.phase)}`}>
-                {day.phase}
-              </span>
+      {/* 7-Week Overview */}
+      <div className="mb-6 space-y-6">
+        {sevenWeekSchedule.map((week, weekIndex) => (
+          <div key={weekIndex} className="space-y-4">
+            {/* Week Header */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+                Week {week.weekNumber}
+              </h3>
+              <div className="text-sm text-slate-600 dark:text-slate-400">
+                {week.startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {week.endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </div>
             </div>
             
-            <div className="text-xs text-slate-500 dark:text-slate-400 mb-2">
-              Day {day.dayNumber}
+            {/* Week Overview */}
+            <div className="p-4 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-lg border border-red-200 dark:border-red-800">
+              <div className="grid grid-cols-7 gap-2">
+                {week.weekDays.map((day, dayIndex) => (
+                  <div
+                    key={dayIndex}
+                    className={`text-center p-2 rounded-lg border-2 transition-all ${
+                      day.isCurrentDay
+                        ? 'bg-red-100 dark:bg-red-900/30 border-red-500 text-red-800 dark:text-red-200'
+                        : day.isPastDay
+                        ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400'
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    <div className="text-xs font-medium">{day.dayShort}</div>
+                    <div className="text-sm font-semibold">{day.date.getDate()}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">Day {day.dayNumber}</div>
+                    {day.isCurrentDay && (
+                      <div className="text-xs text-red-600 dark:text-red-400 font-medium">Today</div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-            
-            <div className="space-y-1">
-              {day.tasks.slice(0, 3).map((task) => (
-                <div
-                  key={task.id}
-                  className={`text-xs p-1 rounded flex items-center space-x-1 ${
-                    day.isCurrentDay
-                      ? "bg-red-700 text-red-50"
-                      : "bg-slate-100 dark:bg-slate-600 text-slate-700 dark:text-slate-200"
-                  }`}
-                >
-                  {getTaskIcon(task.type)}
-                  <span className="truncate">{task.name}</span>
+
+            {/* Daily Details */}
+            <div className="space-y-3">
+              {week.weekDays.map((day, dayIndex) => (
+                <div key={dayIndex} className={`border rounded-lg overflow-hidden transition-all ${
+                  day.isCurrentDay 
+                    ? 'border-red-300 dark:border-red-600 shadow-lg' 
+                    : 'border-slate-200 dark:border-slate-700'
+                }`}>
+                  <button
+                    onClick={() => setExpandedDay(expandedDay === day.dayNumber ? null : day.dayNumber)}
+                    className={`w-full p-4 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-between ${
+                      day.isCurrentDay 
+                        ? 'bg-red-50 dark:bg-red-900/20' 
+                        : 'bg-slate-50 dark:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <CalendarDays className={`w-5 h-5 mr-3 ${day.isCurrentDay ? 'text-red-600' : 'text-slate-500'}`} />
+                      <div className="text-left">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-slate-800 dark:text-slate-200">{day.dayName}</h3>
+                          <span className="text-sm text-slate-500 dark:text-slate-400">({day.dateString})</span>
+                          <span className={`text-xs px-2 py-1 rounded ${getPhaseColor(day.phase)}`}>
+                            {day.phase}
+                          </span>
+                          {day.isCurrentDay && (
+                            <span className="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 rounded-full">
+                              Today
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          Day {day.dayNumber} • {day.tasks.length} tasks • {day.intensity} intensity
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${getIntensityColor(day.intensity).replace('border-', 'bg-')}`}></div>
+                      {expandedDay === day.dayNumber ? (
+                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
+                    </div>
+                  </button>
+
+                  {expandedDay === day.dayNumber && (
+                    <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700">
+                      <div className="space-y-4">
+                        {/* Daily Tasks by Category */}
+                        {['medication', 'feed', 'monitor', 'environment'].map(category => {
+                          const categoryTasks = day.tasks.filter(task => task.type === category);
+                          if (categoryTasks.length === 0) return null;
+                          
+                          return (
+                            <div key={category} className="space-y-2">
+                              <h5 className="text-sm font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                                {category.charAt(0).toUpperCase() + category.slice(1)} Tasks
+                              </h5>
+                              {categoryTasks.map(task => (
+                                <div
+                                  key={task.id}
+                                  className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600"
+                                >
+                                  <div className="flex items-center space-x-3">
+                                    {getTaskIcon(task.type)}
+                                    <div>
+                                      <div className="font-medium text-slate-800 dark:text-slate-200">
+                                        {task.name}
+                                      </div>
+                                      <div className="text-sm text-slate-600 dark:text-slate-400">
+                                        {task.time} • {task.dosage}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <button
+                                    onClick={() => toggleTaskCompletion(day.dayNumber, task.id)}
+                                    className={`p-2 rounded-full transition-colors ${
+                                      dailyProgress[day.dayNumber]?.[task.id]
+                                        ? "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400"
+                                        : "bg-slate-100 text-slate-400 dark:bg-slate-600 dark:text-slate-500 hover:bg-green-100 hover:text-green-600"
+                                    }`}
+                                  >
+                                    <CheckCircle className="w-5 h-5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
-              {day.tasks.length > 3 && (
-                <div className="text-xs text-slate-500 dark:text-slate-400">
-                  +{day.tasks.length - 3} more tasks
-                </div>
-              )}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Daily Task Details */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
-          Today's Tasks ({currentWeek.find(day => day.isCurrentDay)?.dayName || "Select a day"})
-        </h3>
-        
-        <div className="space-y-3">
-          {currentWeek
-            .find(day => day.isCurrentDay)
-            ?.tasks.map((task) => (
-              <div
-                key={task.id}
-                className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700"
-              >
-                <div className="flex items-center space-x-3">
-                  {getTaskIcon(task.type)}
-                  <div>
-                    <div className="font-medium text-slate-800 dark:text-slate-200">
-                      {task.name}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                      {task.time} • {task.dosage}
-                    </div>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => toggleTaskCompletion(
-                    currentWeek.find(day => day.isCurrentDay)?.dayNumber,
-                    task.id
-                  )}
-                  className={`p-2 rounded-full transition-colors ${
-                    dailyProgress[currentWeek.find(day => day.isCurrentDay)?.dayNumber]?.[task.id]
-                      ? "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400"
-                      : "bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500 hover:bg-green-100 hover:text-green-600"
-                  }`}
-                >
-                  <CheckCircle className="w-5 h-5" />
-                </button>
-              </div>
-            ))}
-        </div>
-      </div>
-
-      {/* Weekly Summary */}
+      {/* Treatment Summary */}
       <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
         <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-2 flex items-center">
-          <Activity className="w-4 h-4 mr-2 text-emerald-500" />
-          Week {selectedWeek + 1} Summary
+          <Activity className="w-4 h-4 mr-2 text-red-500" />
+          Treatment Summary
         </h3>
         <div className="grid md:grid-cols-3 gap-4 text-sm">
           <div>
-            <p className="text-slate-600 dark:text-slate-400">Total Tasks:</p>
+            <p className="text-slate-600 dark:text-slate-400">Total Treatment Days:</p>
             <p className="font-medium text-slate-800 dark:text-slate-200">
-              {currentWeek.reduce((total, day) => total + day.tasks.length, 0)}
+              {treatment?.recoveryTimeline || 0} days
             </p>
           </div>
           <div>
-            <p className="text-slate-600 dark:text-slate-400">Medication Doses:</p>
+            <p className="text-slate-600 dark:text-slate-400">Weeks Covered:</p>
             <p className="font-medium text-slate-800 dark:text-slate-200">
-              {currentWeek.reduce((total, day) => 
-                total + day.tasks.filter(task => task.type === "medication").length, 0
-              )}
+              {sevenWeekSchedule.length} weeks
             </p>
           </div>
           <div>
-            <p className="text-slate-600 dark:text-slate-400">Recovery Phase:</p>
+            <p className="text-slate-600 dark:text-slate-400">Disease:</p>
             <p className="font-medium text-slate-800 dark:text-slate-200 capitalize">
-              {currentWeek[0]?.phase || "N/A"}
+              {disease?.name || "N/A"}
             </p>
           </div>
         </div>

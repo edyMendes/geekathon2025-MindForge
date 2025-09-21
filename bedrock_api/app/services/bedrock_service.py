@@ -638,8 +638,8 @@ Create a comprehensive weekly recovery feed recipe calendar. Return ONLY valid J
                     {{
                         "feeding_time": "7:00 AM",
                         "recipe": "Corn 35%, Soybean meal 30%, Wheat 15%, Fish meal 8%, Calcium carbonate 6%, Salt 2%, Vitamins 4%",
-                        "quantity_kg": <amount for this feeding>,
-                        "quantity_grams": <amount for this feeding in grams>,
+                        "quantity_kg": <60% of daily amount>,
+                        "quantity_grams": <60% of daily amount in grams>,
                         "nutritional_focus": "High protein for tissue repair and immune support",
                         "recovery_benefits": "Supports healing and immune function",
                         "ingredient_breakdown": [
@@ -655,8 +655,8 @@ Create a comprehensive weekly recovery feed recipe calendar. Return ONLY valid J
                     {{
                         "feeding_time": "4:00 PM",
                         "recipe": "Barley 30%, Fish meal 25%, Oats 20%, Corn 15%, Oyster shell 5%, Salt 2%, Vitamins 3%",
-                        "quantity_kg": <amount for this feeding>,
-                        "quantity_grams": <amount for this feeding in grams>,
+                        "quantity_kg": <40% of daily amount>,
+                        "quantity_grams": <40% of daily amount in grams>,
                         "nutritional_focus": "Enhanced protein and minerals for evening recovery",
                         "recovery_benefits": "Supports overnight healing processes",
                         "ingredient_breakdown": [
@@ -673,6 +673,47 @@ Create a comprehensive weekly recovery feed recipe calendar. Return ONLY valid J
                 "total_daily_kg": <daily amount>,
                 "recovery_notes": "High-protein diet for {disease_info.disease} recovery",
                 "special_considerations": ["Monitor appetite closely", "Ensure clean water access", "Watch for improvement signs"]
+            }},
+            {{
+                "day": "Tuesday",
+                "feeding_recipes": [
+                    {{
+                        "feeding_time": "8:00 AM",
+                        "recipe": "Different ingredient combination for variety",
+                        "quantity_kg": <50% of daily amount>,
+                        "quantity_grams": <50% of daily amount in grams>,
+                        "nutritional_focus": "Different focus for Tuesday",
+                        "recovery_benefits": "Different recovery benefits",
+                        "ingredient_breakdown": [
+                            {{"ingredient_name": "Different ingredient", "percentage": 40.0, "grams": <calculated>, "nutritional_contribution": "Different contribution"}}
+                        ]
+                    }},
+                    {{
+                        "feeding_time": "1:00 PM",
+                        "recipe": "Afternoon feeding with different ingredients",
+                        "quantity_kg": <30% of daily amount>,
+                        "quantity_grams": <30% of daily amount in grams>,
+                        "nutritional_focus": "Afternoon nutritional focus",
+                        "recovery_benefits": "Afternoon recovery benefits",
+                        "ingredient_breakdown": [
+                            {{"ingredient_name": "Another ingredient", "percentage": 45.0, "grams": <calculated>, "nutritional_contribution": "Another contribution"}}
+                        ]
+                    }},
+                    {{
+                        "feeding_time": "6:00 PM",
+                        "recipe": "Evening feeding with different ingredients",
+                        "quantity_kg": <20% of daily amount>,
+                        "quantity_grams": <20% of daily amount in grams>,
+                        "nutritional_focus": "Evening nutritional focus",
+                        "recovery_benefits": "Evening recovery benefits",
+                        "ingredient_breakdown": [
+                            {{"ingredient_name": "Evening ingredient", "percentage": 35.0, "grams": <calculated>, "nutritional_contribution": "Evening contribution"}}
+                        ]
+                    }}
+                ],
+                "total_daily_kg": <daily amount>,
+                "recovery_notes": "Different recovery approach for Tuesday",
+                "special_considerations": ["Different considerations for Tuesday"]
             }}
         ],
         "weekly_recovery_goals": ["Support healing from {disease_info.disease}", "Boost immune function", "Maintain nutritional status"],
@@ -689,6 +730,14 @@ CRITICAL CALCULATION REQUIREMENTS:
 - All ingredient grams in each feeding MUST add up to the feeding's quantity_grams
 - Convert kg to grams: 1 kg = 1000 grams
 
+DAILY VARIATION REQUIREMENTS:
+- Create 7 completely different daily recipes (Monday through Sunday)
+- Each day should have different meal distributions (e.g., 2 meals vs 3 meals)
+- Vary the feeding times (morning, afternoon, evening combinations)
+- Each day should have unique ingredient combinations while maintaining nutritional balance
+- Progress recovery focus: early days more supportive, later days more restorative
+- Ensure each day's total equals the daily amount but distribute differently across meals
+
 Disease-specific recipe guidelines:
 1. **{disease_info.disease}**: Focus on ingredients that support recovery from this specific disease
 2. Use easily digestible ingredients for sick birds
@@ -697,6 +746,14 @@ Disease-specific recipe guidelines:
 5. Ensure high palatability to encourage eating in sick birds
 6. Consider the disease's impact on appetite and digestion
 7. Vary recipes daily while maintaining recovery focus
+
+CRITICAL: Create 7 DIFFERENT daily recipes with VARIED feeding patterns:
+- Each day should have different ingredient combinations and quantities
+- Vary the feeding times and meal distribution (some days 2 meals, some 3 meals)
+- Each day's total should equal the daily amount, but distribute differently across meals
+- Example: Monday might be 60% morning, 40% evening. Tuesday might be 50% morning, 30% afternoon, 20% evening
+- Make each day unique in both ingredients and feeding schedule
+- Progress the recovery focus throughout the week (early days more supportive, later days more restorative)
 8. Include ingredients that support the specific body systems affected by the disease
 9. Ensure recipes are gentle on the digestive system
 10. Provide adequate energy for healing processes

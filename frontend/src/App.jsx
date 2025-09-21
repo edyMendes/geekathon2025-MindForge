@@ -7,7 +7,6 @@ import Nav from "./components/Nav.jsx";
 import UserHeader from "./components/UserHeader.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Diseases from "./pages/Diseases.jsx";
-import Relatorios from "./pages/Relatorios.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import ApiNotConfigured from "./components/ApiNotConfigured.jsx";
@@ -21,7 +20,7 @@ function AppContent() {
 
   // Verificar se a API está configurada
   const isApiConfigured = () => {
-    const apiUrl = import.meta.env.VITE_API_BASE_URL;
+    const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
     return apiUrl && apiUrl !== 'undefined' && apiUrl.trim() !== '';
   };
 
@@ -36,7 +35,7 @@ function AppContent() {
           const parsedUser = JSON.parse(userData);
           
           // Validate token by making a simple API call
-          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/${parsedUser.userId}`, {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'}/users/${parsedUser.userId}`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
@@ -158,7 +157,6 @@ function AppContent() {
 
         {page === "dashboard" && <Dashboard />}
         {page === "diseases" && <Diseases />}
-        {page === "reports" && <Relatorios />}
       </div>
     </div>
   );

@@ -94,7 +94,7 @@ const API_CONFIG = {
 
 // Function to get the complete URL of an endpoint
 export const getApiUrl = (endpoint) => {
-  const baseUrl = API_CONFIG.BASE_URL.replace(/\/$/, ''); // Remove trailing slash
+  const baseUrl = API_CONFIG.BASE_URL?.replace(/\/$/, '') || 'http://localhost:8001'; // Remove trailing slash, fallback to default
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   return `${baseUrl}${cleanEndpoint}`;
 };
@@ -122,7 +122,7 @@ export const getBedrockEndpoints = () => API_CONFIG.BEDROCK_ENDPOINTS;
 
 // Function to get complete Bedrock API URL for an endpoint
 export const getBedrockApiUrl = (endpoint) => {
-  const baseUrl = API_CONFIG.BEDROCK_API_BASE_URL?.replace(/\/$/, '') || '';
+  const baseUrl = API_CONFIG.BEDROCK_API_BASE_URL?.replace(/\/$/, '') || 'http://localhost:8000'; // Fallback to default
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   return `${baseUrl}${cleanEndpoint}`;
 };

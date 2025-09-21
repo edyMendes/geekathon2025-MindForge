@@ -1,0 +1,76 @@
+services:
+  # Main API Service (FastAPI with SQLite)
+  api:
+    build: ./api
+    container_name: chicken-feeding-api
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./api:/app
+      - api_data:/app/data
+    environment:
+      - PYTHONPATH=/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+  # Bedrock API Service (AWS Bedrock integration)
+  bedrock-api:
+    build: ./bedrock_api
+    container_name: chicken-feeding-bedrock-api
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_BEARER_TOKEN_BEDROCK=${AWS_BEARER_TOKEN_BEDROCK}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - BEDROCK_MODEL_ID=${BEDROCK_MODEL_ID:-amazon.nova-pro-v1:0}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./bedrock_api:/app
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+  # Frontend Service (React/Vite with Nginx)
+  frontend:
+    build: 
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8001
+        VITE_BEDROCK_API_BASE_URL: http://localhost:8000
+    container_name: chicken-feeding-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+      - bedrock-api
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+volumes:
+  api_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

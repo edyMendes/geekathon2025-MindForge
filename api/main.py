@@ -548,7 +548,16 @@ app = FastAPI(title="Chicken Feeding Management System", version="1.0.0")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://localhost:3000", 
+        "http://127.0.0.1:5173", 
+        "http://127.0.0.1:3000",
+        "http://localhost:80",
+        "http://127.0.0.1:80",
+        "http://localhost",
+        "http://127.0.0.1"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -721,6 +730,22 @@ def calculate_group_performance(group_id: int, calc_date: date, db: Session):
     return performance_metrics
 
 # API Endpoints
+
+# Root endpoint
+@app.get("/")
+def read_root():
+    return {
+        "message": "Chicken Feeding Management System API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "redoc": "/redoc",
+        "status": "running"
+    }
+
+# Health check endpoint
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
 # User Management
 @app.post("/users/register", response_model=UserResponse)

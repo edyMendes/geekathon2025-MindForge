@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from "react";
-import { listProfiles, loadProfile, removeProfile, saveProfile, addHistory, getHistory } from "../hooks/useSettings.js";
+import { useEffect, useState } from "react";
+import { listProfiles, loadProfile, removeProfile, saveProfile } from "../hooks/useSettings.js";
 import ChickenForm from "../components/ChickenForm.jsx";
 import Recommendations from "../components/Recommendations.jsx";
 import WeeklyRecipes from "../components/WeeklyRecipes.jsx";
 import { preciseFeedAmount } from "../utils/calculate.js";
-import { TrendingUp, Cpu } from "lucide-react";
-import Chart from "chart.js/auto";
+import { TrendingUp } from "lucide-react";
 import bedrockApiService from "../services/bedrockApiService.js";
 
 export default function Dashboard() {
@@ -15,12 +14,6 @@ export default function Dashboard() {
   const [selectedProfileData, setSelectedProfileData] = useState(null);
   const [isLoadingGroups, setIsLoadingGroups] = useState(false);
 
-  // tracking inputs
-  const dateRef = useRef(); const weightRef = useRef(); const eggsRef = useRef(); const feedRef = useRef();
-
-  // charts refs
-  const wCanvas = useRef(); const eCanvas = useRef();
-  const wChartRef = useRef(null); const eChartRef = useRef(null);
 
   const refreshGroups = async () => {
     setIsLoadingGroups(true);
@@ -111,70 +104,6 @@ export default function Dashboard() {
     }
   };
 
-  // charts render
-  const renderCharts = () => {
-    if (!currentGroup) return;
-    const hist = getHistory(currentGroup);
-    const labels = hist.map((h) => h.date);
-    const weights = hist.map((h) => +h.weight || null);
-    const eggs = hist.map((h) => +h.eggs || 0);
-    const feed = hist.map((h) => +h.feed || 0);
-    const fcrPerEgg = hist.map((h) => (h.eggs > 0 ? (h.feed / h.eggs).toFixed(3) : null));
-
-    if (wChartRef.current) wChartRef.current.destroy();
-    if (eChartRef.current) eChartRef.current.destroy();
-
-    wChartRef.current = new Chart(wCanvas.current.getContext("2d"), {
-      type: "line",
-      data: { labels, datasets: [{ label: "Average weight (kg)", data: weights, tension: 0.3, fill: false }] },
-      options: { responsive: true, maintainAspectRatio: false },
-    });
-
-    eChartRef.current = new Chart(eCanvas.current.getContext("2d"), {
-      type: "line",
-      data: {
-        labels,
-        datasets: [
-          { label: "Eggs/day", data: eggs, tension: 0.3 },
-          { label: "Feed (kg)", data: feed, tension: 0.3 },
-          { label: "Ração/ovo (kg)", data: fcrPerEgg, tension: 0.3 },
-        ],
-      },
-      options: { responsive: true, maintainAspectRatio: false },
-    });
-  };
-
-  useEffect(() => { renderCharts(); }, [currentGroup]);
-
-  const addRecord = () => {
-    const date = dateRef.current.value || new Date().toISOString().slice(0, 10);
-    const weight = parseFloat(weightRef.current.value);
-    const eggs = parseInt(eggsRef.current.value);
-    const feed = parseFloat(feedRef.current.value);
-    const group = currentGroup || prompt("Register in which group?");
-
-    if (!group) return;
-    if (!weight || weight <= 0) return alert("Invalid weight.");
-    addHistory(group, { date, weight, eggs: isNaN(eggs) ? 0 : eggs, feed: isNaN(feed) ? 0 : feed });
-    setCurrentGroup(group); // garante refresh
-    renderCharts();
-    alert("Record added.");
-  };
-
-  const exportCSV = () => {
-    const group = currentGroup || prompt("Export from which group?");
-    if (!group) return;
-    const hist = getHistory(group);
-    if (!hist.length) return alert("No records.");
-    const rows = [["date", "weight_kg", "eggs", "feed_kg", "feed_per_egg_kg"]];
-    hist.forEach((h) => rows.push([h.date, h.weight, h.eggs, h.feed, h.eggs > 0 ? (h.feed / h.eggs).toFixed(3) : ""]));
-    const csv = rows.map((r) => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `report_${group}.csv`; a.click();
-    URL.revokeObjectURL(url);
-  };
 
   return (
     <>
@@ -261,36 +190,6 @@ export default function Dashboard() {
 
       </div>
 
-      {/* TRACKING + CHARTS */}
-      <div className="mt-12 card shadow-sm p-6" data-aos="fade-up">
-        <div className="overflow-x-auto">
-          <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200 mb-4 flex items-center">
-            <TrendingUp className="mr-2" /> Group Records & Performance
-          </h3>
-
-          <div className="grid md:grid-cols-4 gap-3 mb-3">
-            <input ref={dateRef} type="date" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" defaultValue={new Date().toISOString().slice(0,10)} />
-            <input ref={weightRef} type="number" step="0.01" placeholder="Average weight (kg)" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" />
-            <input ref={eggsRef} type="number" step="1" placeholder="Eggs/day" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" />
-            <input ref={feedRef} type="number" step="0.01" placeholder="Feed consumed (kg)" className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400" />
-          </div>
-          <div className="flex gap-3 mb-4">
-            <button onClick={addRecord} className="btn-sec px-4 py-2 rounded-lg">Add Record</button>
-            <button onClick={exportCSV} className="btn-sec px-4 py-2 rounded-lg">Export CSV</button>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="card p-4 h-64">
-              <h4 className="font-semibold mb-2 text-slate-800 dark:text-slate-200">Growth Curve (kg)</h4>
-              <canvas ref={wCanvas} height="180"></canvas>
-            </div>
-            <div className="card p-4 h-64">
-              <h4 className="font-semibold mb-2 text-slate-800 dark:text-slate-200">Production & Consumption</h4>
-              <canvas ref={eCanvas} height="180"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
     </>
   );
 }

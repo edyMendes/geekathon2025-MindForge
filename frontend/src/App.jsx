@@ -110,7 +110,13 @@ function AppContent() {
     return (
       <div className="gradient-bg min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <div className="animate-pulse mb-4">
+            <img 
+              src="/logo.png" 
+              alt="FeedPilot Logo" 
+              className="w-16 h-16 mx-auto rounded-lg shadow-lg"
+            />
+          </div>
           <p className="text-slate-600 dark:text-slate-400">Loading...</p>
         </div>
       </div>
@@ -145,9 +151,16 @@ function AppContent() {
 
         {/* Main Header */}
         <header className="text-center mb-8">
-          <h1 className="text-4xl font-extrabold mb-2 title-gradient">
-            Manager of Feed for Chickens
-          </h1>
+          <div className="flex flex-col items-center justify-center mb-4">
+            <img 
+              src="/logo.png" 
+              alt="FeedPilot Logo" 
+              className="w-40 h-40 mb-4 rounded-lg shadow-lg"
+            />
+            <h1 className="text-4xl font-extrabold title-gradient">
+              FeedPilot
+            </h1>
+          </div>
           <p className="text-lg text-slate-600 dark:text-slate-400">
             Optimize the feeding of your flock with personalized recommendations
           </p>

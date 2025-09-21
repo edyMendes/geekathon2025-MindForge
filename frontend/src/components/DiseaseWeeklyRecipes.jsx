@@ -39,13 +39,7 @@ export default function DiseaseWeeklyRecipes({ diseaseData, weeklyRecipesData, o
               : 'Get disease recovery recommendations first to generate weekly recipes'
             }
           </p>
-          {!currentGroup && (
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 max-w-md mx-auto">
-              <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                <strong>Note:</strong> You need to select an active group from the list above before proceeding with disease recovery analysis.
-              </p>
-            </div>
-          )}
+        
         </div>
       </div>
     );

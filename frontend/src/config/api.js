@@ -98,7 +98,7 @@ const API_CONFIG = {
 export const getApiUrl = (endpoint) => {
   const baseUrl = API_CONFIG.BASE_URL?.replace(/\/$/, '') || 'http://localhost:8001'; // Remove trailing slash, fallback to default
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  return `${cleanBaseUrl}${cleanEndpoint}`;
+  return `${baseUrl}${cleanEndpoint}`;
 };
 
 // Function to get authentication settings
